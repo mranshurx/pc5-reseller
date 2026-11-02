@@ -71,7 +71,7 @@
           "plan": "3h",
           "cost": 2,
           "createdAt": "2026-11-02T16:37:16.466Z",
-          "revoked": false
+          "revoked": true
         },
         {
           "key": "PC5-WS5UFM",
