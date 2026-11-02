@@ -84,7 +84,10 @@ const dummyHash = async pw => { try { await pbkdf2(pw, '00'.repeat(16), 120000);
 
 /* ---------- github ---------- */
 class Conflict extends Error {
-  constructor(path, status) { super(`${path} — conflict (HTTP ${status})`); this.path = path; this.status = status; }
+  constructor(path, status, detail) {
+    super(`${path} — HTTP ${status}${detail ? ': ' + detail : ''}`);
+    this.path = path; this.status = status; this.detail = detail;
+  }
 }
 
 const b64e = s => {
@@ -107,20 +110,22 @@ const writeToken = r => (r && r.token) || localStorage.getItem(LS.token) || CFG.
 
 const defaultFor = path => path.endsWith('keys.json') ? { maintenance:{}, keys:[] } : { resellers:[] };
 
-// Fetch only the blob sha — used to repair a missing sha before writing.
+// Unique URL + no-store: GitHub's CDN will otherwise hand back a stale sha forever.
+const contentsUrl = (repo, path) =>
+  `https://api.github.com/repos/${repo}/contents/${path}?ref=${CFG.BRANCH}&_=${Date.now()}${Math.random().toString(36).slice(2,8)}`;
+const noStore = { cache:'no-store' };
+
+// Fetch only the blob sha — used to repair a missing/stale sha before writing.
 async function currentSha(repo, path, token) {
-  const r = await fetch(
-    `https://api.github.com/repos/${repo}/contents/${path}?ref=${CFG.BRANCH}&t=${Date.now()}`,
-    { headers: authHeaders(token) });
+  const r = await fetch(contentsUrl(repo, path), { headers: authHeaders(token), ...noStore });
   if (!r.ok) return null;
   const j = await r.json();
   return j.sha || null;
 }
 
 async function readJson(repo, path, token) {
-  const u = `https://api.github.com/repos/${repo}/contents/${path}?ref=${CFG.BRANCH}&t=${Date.now()}`;
   let r = null;
-  try { r = await fetch(u, { headers: authHeaders(token) }); } catch { /* offline */ }
+  try { r = await fetch(contentsUrl(repo, path), { headers: authHeaders(token), ...noStore }); } catch { /* offline */ }
 
   if (r && r.status === 404) return { data: defaultFor(path), sha: null };
 
@@ -131,10 +136,10 @@ async function readJson(repo, path, token) {
 
   // API failed — fall back to raw so the UI can still render, but KEEP a real sha.
   dbg(`read ${path} API failed (${r ? r.status : 'network'}) — raw fallback`);
-  const raw = await fetch(`https://raw.githubusercontent.com/${repo}/${CFG.BRANCH}/${path}?t=${Date.now()}`);
+  const raw = await fetch(`https://raw.githubusercontent.com/${repo}/${CFG.BRANCH}/${path}?_=${Date.now()}`, noStore);
   if (!raw.ok) throw new Error(`read ${path}: HTTP ${r ? r.status : 'network'}`);
   const data = JSON.parse(await raw.text());
-  const sha = await currentSha(repo, path, token);   // <-- the actual fix
+  const sha = await currentSha(repo, path, token);   // <-- don't lose the sha
   if (!sha && r && (r.status === 401 || r.status === 403))
     throw new Error(`read ${path}: HTTP ${r.status} — token cannot read ${repo}`);
   return { data, sha };
@@ -146,8 +151,12 @@ async function writeJson(repo, path, data, sha, msg, token) {
   const body = { message:msg, content:b64e(JSON.stringify(data, null, 2)), branch:CFG.BRANCH };
   if (sha) body.sha = sha;
   const r = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`,
-    { method:'PUT', headers:authHeaders(token, true), body:JSON.stringify(body) });
-  if (r.status === 409 || r.status === 422) throw new Conflict(path, r.status);
+    { method:'PUT', headers:authHeaders(token, true), body:JSON.stringify(body), ...noStore });
+
+  if (r.status === 409 || r.status === 422) {
+    let detail = ''; try { detail = (await r.json()).message || ''; } catch {}
+    throw new Conflict(path, r.status, detail);
+  }
   if (r.status === 401 || r.status === 403)
     throw new Error(`write ${path}: HTTP ${r.status} — token needs Contents: write on ${repo}`);
   if (r.status === 404)
@@ -156,11 +165,11 @@ async function writeJson(repo, path, data, sha, msg, token) {
   return r.json();
 }
 
-async function withRetry(fn, n = 4) {
+async function withRetry(fn, n = 6) {
   let last;
   for (let i = 0; i < n; i++) {
     try { return await fn(); }
-    catch (e) { last = e; if (!(e instanceof Conflict)) throw e; await sleep(150*2**i + Math.random()*120); }
+    catch (e) { last = e; if (!(e instanceof Conflict)) throw e; await sleep(300*1.7**i + Math.random()*200); }
   }
   throw last;
 }
@@ -282,7 +291,8 @@ function viewAdmin() {
       <h2>Owner GitHub token</h2>
       <p class="muted">Needs <code>Contents: Read and write</code> on <code>pc5-android</code> AND <code>pc5-reseller</code>. One token, both repos.</p>
       <div class="row"><input id="adminToken" type="password" placeholder="ghp_…" class="grow">
-        <button id="saveAdminToken">Save</button><button id="testAdminToken">Test access</button></div>
+        <button id="saveAdminToken">Save</button><button id="testAdminToken">Test read</button>
+        <button id="writeTest">Test write</button></div>
       <p id="tokenDiag" class="muted sm-note"></p>
     </div>
     <div class="card">
@@ -362,7 +372,7 @@ function wireReseller() {
     if (!t) return toast('Paste a token.', 'err');
     const btn = $('#saveToken'); btn.disabled = true;
     try {
-      const r = await fetch('https://api.github.com/user', { headers: authHeaders(t) });
+      const r = await fetch('https://api.github.com/user', { headers: authHeaders(t), ...noStore });
       if (!r.ok) throw new Error('Token rejected by GitHub.');
       await mutateResellers(d => {
         const x = d.resellers.find(y => y.id === currentRecord.id); if (x) x.token = t;
@@ -452,7 +462,7 @@ function wireAdmin() {
     if (!t) return toast('Paste a token.', 'err');
     const btn = $('#saveAdminToken'); btn.disabled = true;
     try {
-      const r = await fetch('https://api.github.com/user', { headers: authHeaders(t) });
+      const r = await fetch('https://api.github.com/user', { headers: authHeaders(t), ...noStore });
       if (!r.ok) throw new Error('Token rejected by GitHub.');
       localStorage.setItem(LS.token, t); toast('Owner token saved.', 'ok'); refreshAdmin();
     } catch (err) { toast(err.message, 'err'); }
@@ -462,21 +472,39 @@ function wireAdmin() {
     const t = (localStorage.getItem(LS.token) || CFG.SHARED_TOKEN || '').trim();
     const out = $('#tokenDiag');
     if (!t) { out.textContent = 'No token saved.'; return toast('Save the owner token first.', 'err'); }
-    out.textContent = 'Testing…';
+    out.textContent = 'Testing read…';
     const lines = [];
     for (const [repo, path] of [[CFG.DATA_REPO, CFG.DATA_PATH], [CFG.KEYS_REPO, CFG.KEYS_PATH]]) {
       let s = 'network error';
       try {
-        const r = await fetch(
-          `https://api.github.com/repos/${repo}/contents/${path}?ref=${CFG.BRANCH}&t=${Date.now()}`,
-          { headers: authHeaders(t) });
+        const r = await fetch(contentsUrl(repo, path), { headers: authHeaders(t), ...noStore });
         s = r.ok ? 'read OK' : `HTTP ${r.status}`;
       } catch {}
       lines.push(`${repo}/${path}: ${s}`);
     }
     out.textContent = lines.join('  ·  ');
-    toast(lines.every(l => l.endsWith('OK')) ? 'Token can read both repos.' : 'Token cannot read both repos — see diagnostics.',
-      lines.every(l => l.endsWith('OK')) ? 'ok' : 'err');
+    const good = lines.every(l => l.endsWith('OK'));
+    toast(good ? 'Token can read both repos.' : 'Token cannot read both repos — see diagnostics.', good ? 'ok' : 'err');
+  });
+  $('#writeTest').addEventListener('click', async () => {
+    const t = (localStorage.getItem(LS.token) || CFG.SHARED_TOKEN || '').trim();
+    const out = $('#tokenDiag');
+    if (!t) { out.textContent = 'No token saved.'; return toast('Save the owner token first.', 'err'); }
+    out.textContent = 'Testing write round-trip…';
+    try {
+      const { data, sha } = await loadResellers(t);
+      const r = await fetch(`https://api.github.com/repos/${CFG.DATA_REPO}/contents/${CFG.DATA_PATH}`, {
+        method:'PUT', headers: authHeaders(t, true), ...noStore,
+        body: JSON.stringify({ message:'write test', content: b64e(JSON.stringify(data, null, 2)),
+          branch: CFG.BRANCH, ...(sha ? { sha } : {}) }) });
+      if (r.ok) {
+        out.textContent = `write OK (sha ${sha ? sha.slice(0,7) : 'none — file created'})`;
+        toast('Write works.', 'ok'); refreshAdmin(); return;
+      }
+      let m = ''; try { m = (await r.json()).message || ''; } catch {}
+      out.textContent = `write FAILED — HTTP ${r.status}: ${m || 'no message'}`;
+      toast(`Write failed: HTTP ${r.status}`, 'err');
+    } catch (err) { out.textContent = 'write test error: ' + err.message; toast(err.message, 'err'); }
   });
   $('#genPass').addEventListener('click', () => {
     const c = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
