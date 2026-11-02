@@ -1,4 +1,17 @@
 <!DOCTYPE html>
-<meta charset="utf-8">
-<title>Redirecting…</title>
-<script>location.replace('/vips' + location.search + location.hash)</script>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PC5 Keys</title>
+<style>body{background:#0d1117;color:#e6edf3;font:14px system-ui;padding:40px}a{color:#2f81f7}</style>
+</head><body>
+<p id="s">Loading…</p>
+<script>
+(async function(){
+  try{
+    var h=await(await fetch('index.html',{cache:'no-store'})).text();
+    if(!/<\/html>/i.test(h))throw 0;
+    document.open();document.write(h);document.close();
+  }catch(e){document.getElementById('s').innerHTML='Could not load. <a href="index.html">Open manually</a>.';}
+})();
+</script>
+</body></html>
