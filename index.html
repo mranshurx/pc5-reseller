@@ -98,10 +98,10 @@ code{font-family:ui-monospace,Menlo,monospace;font-size:12px;background:#0b0f14;
     dbg('PROMISE: ' + ((e.reason && e.reason.message) || e.reason));
   });
   setTimeout(function () {
-    if (!window.__ready) dbg('app.js never executed — check the Network tab for a 404 on app.js.');
+    if (!window.__ready) dbg('app.js never executed — check Network tab for 404 on app.js.');
   }, 2000);
 })();
 </script>
-<script src="app.js?v=3"></script>
+<script src="app.js?v=4"></script>
 </body>
 </html>
