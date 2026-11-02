@@ -1,0 +1,7 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>redirect…</title>
+<script>
+  var p = location.pathname.replace(/^\/+/, '');
+  location.replace('/index.html?p=' + encodeURIComponent(p) + location.hash);
+</script>
