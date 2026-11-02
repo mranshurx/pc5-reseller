@@ -1,7 +1,5 @@
 'use strict';
 const dbg = window.__dbg || function () {};
-dbg('app.js loaded — route=' + document.documentElement.dataset.route);
-
 const CFG = { KEYS_REPO:'mranshurx/pc5-android', DATA_REPO:'mranshurx/pc5-reseller', BRANCH:'main',
   KEYS_PATH:'data/keys.json', DATA_PATH:'data/resellers.json', ADMIN_PASSWORD:'pc5admin',
   SHARED_TOKEN:'', PREFIX:'PC5-', ALPHABET:'ABCDEFGHJKLMNPQRSTUVWXYZ23456789' };
@@ -319,8 +317,14 @@ function openPanel(rec) {
   currentRecord = rec;
   $('#authPanel').classList.add('hide');
   $('#resellerPanel').classList.remove('hide');
+  forceShow($('#resellerPanel'));
   $('#hello').textContent = 'Signed in as ' + rec.username;
   renderTokenState(); refreshMine(); startTicker();
+}
+
+function forceShow(el) {
+  if (!el) return;
+  if (getComputedStyle(el).display === 'none') el.style.setProperty('display', 'block', 'important');
 }
 
 function renderTokenState() {
@@ -383,6 +387,7 @@ function wireAdmin() {
     localStorage.removeItem(LS.admin);
     $('#adminConsole').classList.add('hide');
     $('#adminGate').classList.remove('hide');
+    forceShow($('#adminGate'));
     $('#gatePass').value = '';
   });
   $('#saveAdminToken').addEventListener('click', async () => {
@@ -429,6 +434,7 @@ function wireAdmin() {
 function openConsole() {
   $('#adminGate').classList.add('hide');
   $('#adminConsole').classList.remove('hide');
+  forceShow($('#adminConsole'));
   const t = localStorage.getItem(LS.token); if (t) $('#adminToken').value = t;
   refreshAdmin(); startTicker();
 }
@@ -549,26 +555,43 @@ setInterval(() => {
 
 /* ---------- boot ---------- */
 (function boot() {
+  if (window.__booted) { dbg('boot skipped (already ran)'); return; }
+  window.__booted = true;
+
+  dbg('path=' + location.pathname + ' search=' + location.search);
+  dbg('localStorage: admin=' + localStorage.getItem(LS.admin) + ' session=' + !!getSession());
+
   const a = $(`[data-nav="${IS_ADMIN ? 'admin' : 'reseller'}"]`);
   if (a) a.classList.add('active');
 
   app.innerHTML = IS_ADMIN ? viewAdmin() : viewReseller();
-  dbg('rendered ' + (IS_ADMIN ? 'admin' : 'reseller') + ' view');
+  dbg('rendered ' + (IS_ADMIN ? 'admin' : 'reseller') + ' view, htmlLen=' + app.innerHTML.length);
 
-  if (IS_ADMIN) { wireAdmin(); if (isAdmin()) openConsole(); }
-  else {
+  const probe = $('#authPanel') || $('#adminGate');
+  dbg('probe found=' + !!probe +
+      ' display=' + (probe ? getComputedStyle(probe).display : '-') +
+      ' height=' + (probe ? probe.offsetHeight : -1) +
+      ' appHeight=' + app.offsetHeight);
+  forceShow(probe);
+
+  if (IS_ADMIN) {
+    wireAdmin();
+    if (isAdmin()) openConsole();
+  } else {
     wireReseller();
     const s = getSession();
     if (s) {
       loadResellers(writeToken(null)).then(({ data }) => {
         const r = (data.resellers || []).find(x => x.id === s.id);
-        if (!r) { clearSession(); return; }
+        if (!r) { clearSession(); dbg('session id not found, cleared'); return; }
         if (r.banned) { clearSession(); toast('Account banned.', 'err'); return; }
         openPanel(r);
-      }).catch(err => toast(err.message, 'err'));
+      }).catch(err => { dbg('session restore failed: ' + err.message); toast(err.message, 'err'); });
     } else if (isAdmin()) {
       $('#authPanel').classList.add('hide');
       $('#ownerNotice').classList.remove('hide');
+      forceShow($('#ownerNotice'));
+      dbg('owner flag set -> showing console link');
     }
   }
   window.__ready = true;
