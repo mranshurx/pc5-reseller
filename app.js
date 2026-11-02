@@ -255,7 +255,7 @@ function viewReseller() {
     <h1 id="hello">—</h1>
     <p class="sub">Credits: <b id="credits">0</b><button id="signOut" class="sm">Sign out</button></p>
     <div class="card">
-      <h2>GitHub token</h2>
+      <h2>RESELLER TOKEN</h2>
       <p class="muted">Fine-grained PAT on <code>pc5-android</code> with <code>Contents: Read and write</code>. Saved on this device only.</p>
       <div class="row"><input id="tokenInput" type="password" placeholder="ghp_…" class="grow">
         <button id="saveToken">Save</button><button id="clearToken" class="sm">Clear</button></div>
