@@ -2,7 +2,8 @@ services:
   - type: web
     name: pc5-reseller
     runtime: static
-    staticPublishPath: .
+    buildCommand: ""
+    staticPublishPath: ./
     routes:
       - type: rewrite
         source: /vips
