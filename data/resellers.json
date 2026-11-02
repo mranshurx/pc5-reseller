@@ -1,37 +1,3 @@
 {
-  "resellers": [
-    {
-      "id": "eacf220a-4d5f-461d-aa9b-592b2409395a",
-      "username": "mrdesibhai",
-      "password": "pbkdf2$120000$8179fbe1dae6dd51ae9e8fd6990f8530$6bd747ed75c455b86bcacfb158bfdb6ed9c29688a6291904e1c762c6b1f763ae",
-      "token": null,
-      "credits": 76,
-      "banned": false,
-      "createdAt": "2026-11-02T14:13:14.835Z",
-      "createdBy": "admin",
-      "keys": [
-        {
-          "key": "PC5-26XNBR",
-          "plan": "1h",
-          "cost": 0.5,
-          "createdAt": "2026-11-02T14:14:16.807Z",
-          "revoked": false
-        },
-        {
-          "key": "PC5-4T6MHB",
-          "plan": "6h",
-          "cost": 3,
-          "createdAt": "2026-11-02T14:16:37.005Z",
-          "revoked": false
-        }
-      ],
-      "logins": [
-        {
-          "at": "2026-11-02T14:13:40.610Z",
-          "ip": "223.237.147.14",
-          "ua": "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36"
-        }
-      ]
-    }
-  ]
+  "resellers": []
 }
