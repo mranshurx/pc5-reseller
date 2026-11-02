@@ -37,6 +37,12 @@ function countdown(iso) {
         m = Math.floor(s%3600/60), x = s%60;
   return (d ? d+'d ' : '') + (d || h ? h+'h ' : '') + m+'m '+x+'s';
 }
+function show(el, on) {
+  if (!el) return;
+  el.classList.toggle('hide', !on);
+  if (on) el.style.setProperty('display', 'block', 'important');
+  else el.style.removeProperty('display');
+}
 
 /* ---------- crypto ---------- */
 const te = new TextEncoder();
@@ -178,11 +184,12 @@ function viewReseller() {
       <input id="loginPass" type="password" autocomplete="current-password" required>
       <button class="primary" type="submit">Sign in</button>
     </form>
-    <div id="ownerNotice" class="card narrow hide">
-      <h2>You're signed in as owner</h2>
-      <p class="muted">The console only lives at <code>/vips</code>.</p>
-      <a class="btn primary" href="vips">Open console</a>
-    </div>
+  </div>
+  <div id="ownerNotice" class="card narrow hide">
+    <h2>You're signed in as owner</h2>
+    <p class="muted">The console only lives at <code>/vips</code>.</p>
+    <a class="btn primary" href="vips">Open console</a>
+    <button id="asReseller" class="sm">Sign in as reseller</button>
   </div>
   <div id="resellerPanel" class="hide">
     <h1 id="hello">—</h1>
@@ -281,6 +288,12 @@ function wireReseller() {
     finally { btn.disabled = false; }
   });
 
+  $('#asReseller').addEventListener('click', () => {
+    localStorage.removeItem(LS.admin);
+    show($('#ownerNotice'), false);
+    show($('#authPanel'), true);
+  });
+
   $('#signOut').addEventListener('click', () => { clearSession(); location.href = HOME; });
 
   $('#plans').addEventListener('click', e => {
@@ -315,16 +328,11 @@ function wireReseller() {
 
 function openPanel(rec) {
   currentRecord = rec;
-  $('#authPanel').classList.add('hide');
-  $('#resellerPanel').classList.remove('hide');
-  forceShow($('#resellerPanel'));
+  show($('#authPanel'), false);
+  show($('#ownerNotice'), false);
+  show($('#resellerPanel'), true);
   $('#hello').textContent = 'Signed in as ' + rec.username;
   renderTokenState(); refreshMine(); startTicker();
-}
-
-function forceShow(el) {
-  if (!el) return;
-  if (getComputedStyle(el).display === 'none') el.style.setProperty('display', 'block', 'important');
 }
 
 function renderTokenState() {
@@ -385,9 +393,8 @@ function wireAdmin() {
   });
   $('#adminOut').addEventListener('click', () => {
     localStorage.removeItem(LS.admin);
-    $('#adminConsole').classList.add('hide');
-    $('#adminGate').classList.remove('hide');
-    forceShow($('#adminGate'));
+    show($('#adminConsole'), false);
+    show($('#adminGate'), true);
     $('#gatePass').value = '';
   });
   $('#saveAdminToken').addEventListener('click', async () => {
@@ -432,9 +439,8 @@ function wireAdmin() {
 }
 
 function openConsole() {
-  $('#adminGate').classList.add('hide');
-  $('#adminConsole').classList.remove('hide');
-  forceShow($('#adminConsole'));
+  show($('#adminGate'), false);
+  show($('#adminConsole'), true);
   const t = localStorage.getItem(LS.token); if (t) $('#adminToken').value = t;
   refreshAdmin(); startTicker();
 }
@@ -558,21 +564,10 @@ setInterval(() => {
   if (window.__booted) { dbg('boot skipped (already ran)'); return; }
   window.__booted = true;
 
-  dbg('path=' + location.pathname + ' search=' + location.search);
-  dbg('localStorage: admin=' + localStorage.getItem(LS.admin) + ' session=' + !!getSession());
-
   const a = $(`[data-nav="${IS_ADMIN ? 'admin' : 'reseller'}"]`);
   if (a) a.classList.add('active');
 
   app.innerHTML = IS_ADMIN ? viewAdmin() : viewReseller();
-  dbg('rendered ' + (IS_ADMIN ? 'admin' : 'reseller') + ' view, htmlLen=' + app.innerHTML.length);
-
-  const probe = $('#authPanel') || $('#adminGate');
-  dbg('probe found=' + !!probe +
-      ' display=' + (probe ? getComputedStyle(probe).display : '-') +
-      ' height=' + (probe ? probe.offsetHeight : -1) +
-      ' appHeight=' + app.offsetHeight);
-  forceShow(probe);
 
   if (IS_ADMIN) {
     wireAdmin();
@@ -588,10 +583,12 @@ setInterval(() => {
         openPanel(r);
       }).catch(err => { dbg('session restore failed: ' + err.message); toast(err.message, 'err'); });
     } else if (isAdmin()) {
-      $('#authPanel').classList.add('hide');
-      $('#ownerNotice').classList.remove('hide');
-      forceShow($('#ownerNotice'));
-      dbg('owner flag set -> showing console link');
+      show($('#authPanel'), false);
+      show($('#ownerNotice'), true);
+      dbg('owner flag set -> console link shown');
+    } else {
+      show($('#authPanel'), true);
+      dbg('login form shown');
     }
   }
   window.__ready = true;
