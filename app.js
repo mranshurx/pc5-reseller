@@ -7,6 +7,7 @@ const CFG = { KEYS_REPO:'mranshurx/pc5-android', DATA_REPO:'mranshurx/pc5-resell
 
 const PLANS = [['1h',1,.5],['3h',3,2],['6h',6,3],['12h',12,5],['1d',24,7],['3d',72,14],
   ['7d',168,25],['14d',336,30],['30d',720,80]].map(([label,hours,cost]) => ({label,hours,cost}));
+const hoursFor = k => k.durationHours || (PLANS.find(p => p.label === k.plan)?.hours ?? 1);
 
 const IS_ADMIN = document.documentElement.dataset.route === 'admin';
 const HOME = './';
@@ -196,7 +197,7 @@ async function mutateResellers(mut, token, msg = 'reseller update') {
 const randomKey = () => CFG.PREFIX + Array.from(crypto.getRandomValues(new Uint8Array(6)),
   b => CFG.ALPHABET[b % CFG.ALPHABET.length]).join('');
 
-// Keys always start immediately and are always single-device.
+// Keys are created IDLE: no startedAt, no expiresAt. The timer starts on unlock.
 async function mintKey(rec, plan) {
   const token = writeToken(rec);
   if (!token) throw new Error('No GitHub token saved.');
@@ -204,8 +205,7 @@ async function mintKey(rec, plan) {
   const now = Date.now();
   const p = { key:null, plan:plan.label, durationHours:plan.hours, maxDevices:1,
     cost:plan.cost, resellerId:rec.id, reseller:rec.username, createdAt:new Date(now).toISOString(),
-    startedAt:new Date(now).toISOString(), activatedAt:null,
-    expiresAt:new Date(now + plan.hours*3600e3).toISOString() };
+    startedAt:null, activatedAt:null, expiresAt:null };
   const key = await withRetry(async () => {
     const { data, sha } = await loadKeys(token);
     if (!Array.isArray(data.keys)) data.keys = [];
@@ -226,6 +226,20 @@ async function mintKey(rec, plan) {
     }, token);
   } catch { toast(`Key ${key} written but credit deduction failed — refresh.`, 'err'); }
   return key;
+}
+
+// Stamp the start of a key's lifetime. Shared by reseller and owner.
+async function startKey(key, token) {
+  return withRetry(async () => {
+    const { data, sha } = await loadKeys(token);
+    const k = (data.keys || []).find(x => x.key === key);
+    if (!k) throw new Error('Key not found in keys.json.');
+    if (k.startedAt) throw new Error('Key is already started.');
+    const now = Date.now();
+    k.startedAt = new Date(now).toISOString();
+    k.expiresAt = new Date(now + hoursFor(k) * 3600e3).toISOString();
+    await writeJson(CFG.KEYS_REPO, CFG.KEYS_PATH, data, sha, `unlock ${key}`, token);
+  });
 }
 
 const ip = async () => { try { return (await (await fetch('https://api.ipify.org?format=json')).json()).ip || ''; } catch { return ''; } };
@@ -264,7 +278,7 @@ function viewReseller() {
     </div>
     <div class="card">
       <h2>Mint a key</h2>
-      <p class="muted sm-note" style="margin:0 0 12px">Keys start immediately and are single-device.</p>
+      <p class="muted sm-note" style="margin:0 0 12px">Keys are created idle. The timer starts only when you press Unlock on a key.</p>
       <div class="plans" id="plans">${plansHTML()}</div>
     </div>
     <div class="card">
@@ -371,6 +385,8 @@ function wireReseller() {
       catch { toast('Copy failed', 'err'); }
       return;
     }
+    const st = e.target.closest('[data-start]');
+    if (st) return unlockMine(st.dataset.start, st);
     const rv = e.target.closest('[data-revoke]');
     if (rv) revokeMine(rv.dataset.revoke, rv);
   });
@@ -395,7 +411,7 @@ function wireReseller() {
     const btn = $('#saveToken'); btn.disabled = true;
     try {
       const r = await fetch('https://api.github.com/user', { headers: authHeaders(t), ...noStore });
-      if (!r.ok) throw new Error(`GitHub rejected the token (HTTP ${r.status}).`);
+      if (!r.ok) throw new Error(`GitHub rejected the token (HTTP ${r.status})`);
       toast('Token saved.', 'ok');
       try {
         await mutateResellers(d => {
@@ -440,7 +456,7 @@ async function onMint(plan, btn) {
   btn.disabled = true;
   try {
     const key = await mintKey(currentRecord, plan);
-    toast('Minted ' + key, 'ok');
+    toast('Created ' + key + ' — unlock it to start the timer.', 'ok');
     const fresh = await reloadRecord(); if (fresh) currentRecord = fresh;
     refreshMine();
   } catch (err) { toast(err.message, 'err'); }
@@ -473,9 +489,24 @@ async function refreshMine() {
       <td>${esc(k.cost)} cr</td>
       <td><button data-copy="${esc(k.key)}" class="sm">Copy</button>
       ${k.revoked ? '<span class="pill dead">revoked</span>'
+        : !k.startedAt ? `<button data-start="${esc(k.key)}" class="sm primary">Unlock</button>`
         : `<button data-revoke="${esc(k.key)}" class="sm danger">Revoke</button>`}</td></tr>`;
     }).join('');
   } catch {}
+}
+
+async function unlockMine(key, btn) {
+  if (!currentRecord) return;
+  const token = writeToken(currentRecord);
+  if (!token) return toast('Save a GitHub token first.', 'err');
+  if (!confirm('Unlock ' + key + '? The timer starts now and cannot be paused.')) return;
+  btn.disabled = true;
+  try {
+    await startKey(key, token);
+    toast('Unlocked ' + key, 'ok');
+    refreshMine();
+  } catch (err) { toast(err.message, 'err'); }
+  finally { btn.disabled = false; }
 }
 
 async function revokeMine(key, btn) {
@@ -639,6 +670,7 @@ async function refreshAdmin() {
           ${rk.map(k => `<tr><td><code>${esc(k.key)}</code></td><td>${esc(k.plan)}</td>
           <td>${esc(countdown(k.expiresAt))}</td>
           <td>${k.revoked ? '<span class="pill dead">revoked</span>'
+            : !k.startedAt ? `<button data-act="start" data-key="${esc(k.key)}" class="sm">Unlock</button>`
             : `<button data-act="revoke" data-key="${esc(k.key)}" class="sm">Revoke</button>`}</td></tr>`).join('')}
         </tbody></table>` : '<p class="muted" style="margin:0">none</p>'}
         <h2 style="font-size:12px;margin:14px 0 6px">Recent logins</h2>${lg}</div></details>`;
@@ -681,6 +713,11 @@ async function onAdminAction(e) {
       if (!confirm('Delete this reseller? Keys stay.')) return;
       await mutateResellers(d => { d.resellers = d.resellers.filter(x => x.id !== id); }, token, 'delete reseller');
       toast('Deleted.', 'ok');
+    } else if (act === 'start') {
+      const key = btn.dataset.key;
+      if (!confirm('Unlock ' + key + '?')) return;
+      await startKey(key, token);
+      toast('Unlocked.', 'ok');
     } else if (act === 'revoke') {
       const key = btn.dataset.key;
       if (!confirm('Revoke ' + key + '?')) return;
