@@ -4,8 +4,64 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>PC5 Keys</title>
-<link rel="stylesheet" href="style.css?v=2">
-<script src="boot.js?v=2"></script>
+<style>
+:root{--bg:#0d1117;--panel:#161b22;--line:#232b36;--fg:#e6edf3;--dim:#8b949e;--accent:#2f81f7;--ok:#3fb950;--bad:#f85149;--warn:#d29922}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--accent);text-decoration:none}
+header{display:flex;align-items:center;gap:18px;padding:12px 20px;border-bottom:1px solid var(--line);background:rgba(13,17,23,.92);position:sticky;top:0;z-index:20}
+.brand{font-weight:700;letter-spacing:.5px}.brand span{color:var(--accent)}
+nav{display:flex;gap:6px;margin-left:auto}
+nav a{padding:6px 12px;border-radius:6px;color:var(--dim);font-weight:600}
+nav a:hover{background:var(--panel);color:var(--fg)}
+nav a.active{background:var(--panel);color:var(--fg);box-shadow:inset 0 0 0 1px var(--line)}
+main{max-width:940px;margin:0 auto;padding:28px 20px 80px;min-height:60vh}
+h1{font-size:20px;margin:0 0 4px}h2{font-size:15px;margin:0 0 12px}
+.sub{color:var(--dim);margin:0 0 22px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;margin-bottom:16px}
+.narrow{max-width:420px}
+.grid{display:grid;gap:16px;grid-template-columns:1fr 1fr}
+@media(max-width:720px){.grid{grid-template-columns:1fr}}
+label{display:block;font-size:12px;color:var(--dim);margin:0 0 5px;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+input{width:100%;padding:9px 11px;margin-bottom:12px;background:#0b0f14;border:1px solid var(--line);border-radius:7px;color:var(--fg);font:inherit}
+input:focus{outline:none;border-color:var(--accent)}
+button{font:inherit;font-weight:600;padding:9px 15px;border-radius:7px;border:1px solid var(--line);background:#21262d;color:var(--fg);cursor:pointer}
+button:hover{border-color:#3d444d}button:disabled{opacity:.5}
+.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn{display:inline-block;padding:9px 15px;border-radius:7px;color:#fff}
+.sm{padding:3px 10px;font-size:12px;margin-left:8px}
+.danger{color:var(--bad)}
+.row{display:flex;gap:8px;flex-wrap:wrap}.row input{margin:0}.grow{flex:1}
+.plans{display:grid;grid-template-columns:repeat(auto-fill,minmax(86px,1fr));gap:8px;margin-bottom:14px}
+.plans button{display:flex;flex-direction:column;gap:2px;align-items:center;padding:10px 6px}
+.plans small{color:var(--dim);font-size:11px}
+.toggles{display:flex;gap:18px}
+.toggles label{display:flex;align-items:center;gap:7px;margin:0;text-transform:none;letter-spacing:0;font-size:13px;color:var(--dim)}
+.toggles input{width:auto;margin:0}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-size:11px;text-transform:uppercase;color:var(--dim);padding:0 8px 8px;border-bottom:1px solid var(--line)}
+td{padding:9px 8px;border-bottom:1px solid #1b222c;vertical-align:middle}
+code{font-family:ui-monospace,Menlo,monospace;font-size:12px;background:#0b0f14;padding:2px 6px;border-radius:4px;border:1px solid var(--line)}
+.pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px}
+.pill.live{background:rgba(63,185,80,.15);color:var(--ok)}
+.pill.dead{background:rgba(248,81,73,.15);color:var(--bad)}
+.pill.pend{background:rgba(210,153,34,.15);color:var(--warn)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:16px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:13px}
+.stat b{display:block;font-size:22px}.stat span{font-size:11px;color:var(--dim);text-transform:uppercase}
+.res{border:1px solid var(--line);border-radius:9px;margin-bottom:10px;overflow:hidden}
+.res>summary{display:flex;gap:12px;align-items:center;padding:12px 14px;cursor:pointer;background:var(--panel);list-style:none}
+.res>summary::-webkit-details-marker{display:none}
+.res .body{padding:14px;border-top:1px solid var(--line);background:#12171e}
+.muted{color:var(--dim)}.sm-note{font-size:12px;margin:10px 0 0}
+.log{font-size:12px;color:var(--dim);font-family:ui-monospace,monospace}
+.gap{margin-top:26px}.hide{display:none!important}
+#toasts{position:fixed;right:16px;bottom:16px;display:flex;flex-direction:column;gap:8px;z-index:50}
+.toast{background:#1c2430;border:1px solid var(--line);border-left:3px solid var(--accent);padding:10px 14px;border-radius:7px;max-width:320px}
+.toast.err{border-left-color:var(--bad)}.toast.ok{border-left-color:var(--ok)}
+#dbg{white-space:pre-wrap;font:12px ui-monospace,monospace;background:rgba(210,153,34,.1);
+  border-bottom:1px solid var(--warn);color:#f0d38a;padding:8px 20px}
+</style>
 </head>
 <body>
 
@@ -17,115 +73,35 @@
   </nav>
 </header>
 
-<main>
-  <div id="bootErr" hidden></div>
-
-  <section id="resellerView">
-    <div id="authPanel">
-      <h1>Reseller sign in</h1>
-      <p class="sub">Accounts are issued by the owner.</p>
-      <form id="loginForm" class="card narrow">
-        <label for="loginUser">Username</label>
-        <input id="loginUser" autocomplete="username" required>
-        <label for="loginPass">Password</label>
-        <input id="loginPass" type="password" autocomplete="current-password" required>
-        <button class="primary" type="submit">Sign in</button>
-      </form>
-      <div id="ownerNotice" class="card narrow hide">
-        <h2>You're signed in as owner</h2>
-        <p class="muted">The console only lives at <code>/vips</code>.</p>
-        <a class="primary btn" href="vips">Open console</a>
-      </div>
-    </div>
-
-    <div id="resellerPanel" class="hide">
-      <h1 id="hello">—</h1>
-      <p class="sub">Credits: <b id="credits">0</b>
-        <button id="signOut" class="sm">Sign out</button></p>
-
-      <div class="card">
-        <h2>GitHub token</h2>
-        <p class="muted">Fine-grained PAT, <code>Contents: Read and write</code>.</p>
-        <div class="row">
-          <input id="tokenInput" type="password" placeholder="ghp_…" class="grow">
-          <button id="saveToken">Save</button>
-        </div>
-        <p id="tokenState" class="muted sm-note"></p>
-      </div>
-
-      <div class="card">
-        <h2>Mint a key</h2>
-        <div class="plans" id="plans"></div>
-        <div class="toggles">
-          <label><input type="checkbox" id="optImmediate" checked> Start immediately</label>
-          <label><input type="checkbox" id="optMulti"> Multi-device</label>
-        </div>
-      </div>
-
-      <div class="card">
-        <h2>My keys</h2>
-        <table>
-          <thead><tr><th>Key</th><th>Plan</th><th>Created</th><th>Expiry</th><th>Cost</th><th></th></tr></thead>
-          <tbody id="myKeys"><tr><td colspan="6" class="muted">No keys yet.</td></tr></tbody>
-        </table>
-      </div>
-    </div>
-  </section>
-
-  <section id="adminView">
-    <div id="adminGate" class="narrow">
-      <h1>Owner console</h1>
-      <p class="sub">Password required.</p>
-      <form id="gateForm" class="card">
-        <label for="gatePass">Password</label>
-        <input id="gatePass" type="password" required>
-        <button class="primary" type="submit">Unlock</button>
-      </form>
-    </div>
-
-    <div id="adminConsole" class="hide">
-      <h1>Owner console</h1>
-      <p class="sub"><button id="adminOut" class="sm">Lock</button></p>
-      <div class="stats" id="stats"></div>
-
-      <div class="card">
-        <h2>Owner GitHub token</h2>
-        <p class="muted">Must cover <code>pc5-android</code> and <code>pc5-reseller</code>.</p>
-        <div class="row">
-          <input id="adminToken" type="password" placeholder="ghp_…" class="grow">
-          <button id="saveAdminToken">Save</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <h2>Create reseller</h2>
-        <div class="grid">
-          <div><label for="newUser">Username</label>
-            <input id="newUser" placeholder="3-20 chars, a-z 0-9 _"></div>
-          <div><label for="newPass">Password</label>
-            <div class="row"><input id="newPass" class="grow"><button type="button" id="genPass">Generate</button></div></div>
-          <div><label for="newCredits">Starting credits</label>
-            <input id="newCredits" type="number" min="0" step="0.5" value="0"></div>
-          <div><label for="newToken">Their token (blank = shared)</label>
-            <input id="newToken" type="password" placeholder="optional"></div>
-        </div>
-        <button class="primary" id="createReseller">Create account</button>
-      </div>
-
-      <h2 class="gap">Resellers</h2>
-      <div id="resellerList"></div>
-    </div>
-  </section>
-</main>
-
+<div id="dbg" hidden></div>
+<main id="app"></main>
 <div id="toasts"></div>
-<script src="app.js?v=2"></script>
+<noscript><p style="padding:20px">JavaScript is required.</p></noscript>
+
 <script>
-setTimeout(function () {
-  if (document.body.dataset.ready) return;
-  var e = document.getElementById('bootErr');
-  if (e) { e.hidden = false; e.textContent = 'app.js did not run — check the file exists and the console for errors.'; }
-}, 2500);
+(function () {
+  var p = location.pathname.replace(/\.html$/i, '').replace(/\/+$/, '');
+  var admin = /\/vips$/i.test(p) || /[?&]vips\b/.test(location.search);
+  document.documentElement.dataset.route = admin ? 'admin' : 'reseller';
+
+  function dbg(m) {
+    var d = document.getElementById('dbg');
+    if (!d) return;
+    d.hidden = false;
+    d.textContent += (d.textContent ? '\n' : '') + m;
+  }
+  window.__dbg = dbg;
+  window.addEventListener('error', function (e) {
+    dbg('ERROR: ' + e.message + '  @' + String(e.filename || '').split('/').pop() + ':' + e.lineno);
+  });
+  window.addEventListener('unhandledrejection', function (e) {
+    dbg('PROMISE: ' + ((e.reason && e.reason.message) || e.reason));
+  });
+  setTimeout(function () {
+    if (!window.__ready) dbg('app.js never executed — check the Network tab for a 404 on app.js.');
+  }, 2000);
+})();
 </script>
+<script src="app.js?v=3"></script>
 </body>
 </html>
