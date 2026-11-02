@@ -1,0 +1,43 @@
+/* ============================================================
+   PC5 KEYS — CONFIG  (all hardcoded, nothing shown in the UI)
+   ============================================================ */
+window.PC5_CONFIG = {
+
+  /* target repo holding keys.json */
+  KEYS_REPO:   'mranshurx/pc5-android',
+  KEYS_BRANCH: 'main',
+  KEYS_FILE:   'data/keys.json',
+
+  /* repo holding the reseller database */
+  DATA_REPO:   'mranshurx/pc5-android',
+  DATA_BRANCH: 'main',
+  DATA_FILE:   'data/resellers.json',
+
+  /* /vips password — CHANGE THIS */
+  ADMIN_PASSWORD: 'pc5admin',
+
+  /* fallback write token so new resellers can register before
+     they own a token. Fine-grained PAT, Contents: R/W on the repo. */
+  SHARED_TOKEN: '',
+
+  /* key shape */
+  KEY_PREFIX: 'PC5-',
+  KEY_LEN: 6,
+  KEY_ALPHABET: 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789',
+
+  /* activate keys the moment they are minted (recommended) */
+  ACTIVATE_ON_CREATE: true,
+
+  /* plans: credits + durationHours */
+  PLANS: [
+    { id: 'p1h',  label: '1 hour',   hours: 1,   credits: 0.5 },
+    { id: 'p3h',  label: '3 hours',  hours: 3,   credits: 2   },
+    { id: 'p6h',  label: '6 hours',  hours: 6,   credits: 3   },
+    { id: 'p12h', label: '12 hours', hours: 12,  credits: 5   },
+    { id: 'p1d',  label: '1 day',    hours: 24,  credits: 7   },
+    { id: 'p3d',  label: '3 days',   hours: 72,  credits: 14  },
+    { id: 'p7d',  label: '7 days',   hours: 168, credits: 25  },
+    { id: 'p14d', label: '14 days',  hours: 336, credits: 30  },
+    { id: 'p30d', label: '30 days',  hours: 720, credits: 80  }
+  ]
+};
