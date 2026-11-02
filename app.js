@@ -1,7 +1,8 @@
 'use strict';
 const dbg = window.__dbg || function () {};
 const CFG = { KEYS_REPO:'mranshurx/pc5-android', DATA_REPO:'mranshurx/pc5-reseller', BRANCH:'main',
-  KEYS_PATH:'data/keys.json', DATA_PATH:'data/resellers.json', ADMIN_PASSWORD:'pc5admin',
+  KEYS_PATH:'data/keys.json', DATA_PATH:'data/resellers.json',
+  ADMIN_PASSWORD:'pc5admin', // change this — it ships in plaintext
   SHARED_TOKEN:'', PREFIX:'PC5-', ALPHABET:'ABCDEFGHJKLMNPQRSTUVWXYZ23456789' };
 
 const PLANS = [['1h',1,.5],['3h',3,2],['6h',6,3],['12h',12,5],['1d',24,7],['3d',72,14],
@@ -17,10 +18,23 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt
 
 /* ---------- storage ---------- */
 const LS = { session:'pc5_session', admin:'pc5_admin', token:'pc5_admin_token' };
+const ADMIN_TTL = 12 * 3600e3; // owner flag expires after 12h instead of living forever
+
 const getSession = () => { try { return JSON.parse(localStorage.getItem(LS.session) || 'null'); } catch { return null; } };
 const setSession = r => localStorage.setItem(LS.session, JSON.stringify({ id:r.id }));
 const clearSession = () => localStorage.removeItem(LS.session);
-const isAdmin = () => localStorage.getItem(LS.admin) === '1';
+
+const isAdmin = () => {
+  try {
+    const v = JSON.parse(localStorage.getItem(LS.admin) || 'null');
+    if (!v || typeof v !== 'object' || !v.exp || v.exp < Date.now()) {
+      localStorage.removeItem(LS.admin); return false;
+    }
+    return true;
+  } catch { localStorage.removeItem(LS.admin); return false; }
+};
+const setAdmin = () => localStorage.setItem(LS.admin, JSON.stringify({ exp: Date.now() + ADMIN_TTL }));
+const clearAdmin = () => localStorage.removeItem(LS.admin);
 
 /* ---------- ui ---------- */
 function toast(m, k='') {
@@ -174,6 +188,11 @@ const plansHTML = () => PLANS.map(p =>
 
 function viewReseller() {
   return `
+  <div id="ownerNotice" class="ownerbar hide">
+    <p><b>Owner mode</b> — console lives at <code>/vips</code>.</p>
+    <a class="btn primary" href="vips">Open console</a>
+    <button id="asReseller" class="sm">Dismiss</button>
+  </div>
   <div id="authPanel">
     <h1>Reseller sign in</h1>
     <p class="sub">Accounts are issued by the owner.</p>
@@ -184,12 +203,6 @@ function viewReseller() {
       <input id="loginPass" type="password" autocomplete="current-password" required>
       <button class="primary" type="submit">Sign in</button>
     </form>
-  </div>
-  <div id="ownerNotice" class="card narrow hide">
-    <h2>You're signed in as owner</h2>
-    <p class="muted">The console only lives at <code>/vips</code>.</p>
-    <a class="btn primary" href="vips">Open console</a>
-    <button id="asReseller" class="sm">Sign in as reseller</button>
   </div>
   <div id="resellerPanel" class="hide">
     <h1 id="hello">—</h1>
@@ -289,7 +302,8 @@ function wireReseller() {
   });
 
   $('#asReseller').addEventListener('click', () => {
-    localStorage.removeItem(LS.admin);
+    clearAdmin();
+    $('#navAdmin')?.classList.add('hide');
     show($('#ownerNotice'), false);
     show($('#authPanel'), true);
   });
@@ -389,10 +403,12 @@ function wireAdmin() {
   $('#gateForm').addEventListener('submit', e => {
     e.preventDefault();
     if ($('#gatePass').value !== CFG.ADMIN_PASSWORD) return toast('Wrong password.', 'err');
-    localStorage.setItem(LS.admin, '1'); openConsole();
+    setAdmin();
+    $('#navAdmin')?.classList.remove('hide');
+    openConsole();
   });
   $('#adminOut').addEventListener('click', () => {
-    localStorage.removeItem(LS.admin);
+    clearAdmin();
     show($('#adminConsole'), false);
     show($('#adminGate'), true);
     $('#gatePass').value = '';
@@ -564,6 +580,9 @@ setInterval(() => {
   if (window.__booted) { dbg('boot skipped (already ran)'); return; }
   window.__booted = true;
 
+  const owner = isAdmin();
+  if (owner) $('#navAdmin')?.classList.remove('hide');
+
   const a = $(`[data-nav="${IS_ADMIN ? 'admin' : 'reseller'}"]`);
   if (a) a.classList.add('active');
 
@@ -571,26 +590,31 @@ setInterval(() => {
 
   if (IS_ADMIN) {
     wireAdmin();
-    if (isAdmin()) openConsole();
-  } else {
-    wireReseller();
-    const s = getSession();
-    if (s) {
-      loadResellers(writeToken(null)).then(({ data }) => {
-        const r = (data.resellers || []).find(x => x.id === s.id);
-        if (!r) { clearSession(); dbg('session id not found, cleared'); return; }
-        if (r.banned) { clearSession(); toast('Account banned.', 'err'); return; }
-        openPanel(r);
-      }).catch(err => { dbg('session restore failed: ' + err.message); toast(err.message, 'err'); });
-    } else if (isAdmin()) {
-      show($('#authPanel'), false);
-      show($('#ownerNotice'), true);
-      dbg('owner flag set -> console link shown');
-    } else {
-      show($('#authPanel'), true);
-      dbg('login form shown');
-    }
+    if (owner) openConsole();
+    window.__ready = true;
+    dbg('ready (admin route)');
+    return;
   }
+
+  wireReseller();
+
+  // The reseller sign-in form is ALWAYS the default surface on "/".
+  show($('#authPanel'), true);
+
+  const s = getSession();
+  if (s) {
+    loadResellers(writeToken(null)).then(({ data }) => {
+      const r = (data.resellers || []).find(x => x.id === s.id);
+      if (!r) { clearSession(); dbg('session id not found, cleared'); return; }
+      if (r.banned) { clearSession(); toast('Account banned.', 'err'); return; }
+      openPanel(r);
+    }).catch(err => { dbg('session restore failed: ' + err.message); toast(err.message, 'err'); });
+  } else if (owner) {
+    // Owner flag only ADDS a banner above the form — it never replaces it.
+    show($('#ownerNotice'), true);
+    dbg('owner flag set — banner shown above login form');
+  }
+
   window.__ready = true;
-  dbg('ready');
+  dbg('ready (reseller route)');
 })();
