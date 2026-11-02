@@ -61,6 +61,10 @@ code{font-family:ui-monospace,Menlo,monospace;font-size:12px;background:#0b0f14;
 .toast.err{border-left-color:var(--bad)}.toast.ok{border-left-color:var(--ok)}
 #dbg{white-space:pre-wrap;font:12px ui-monospace,monospace;background:rgba(210,153,34,.1);
   border-bottom:1px solid var(--warn);color:#f0d38a;padding:8px 20px}
+.ownerbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:rgba(47,129,247,.08);
+  border:1px solid rgba(47,129,247,.35);border-radius:10px;padding:12px 16px;margin-bottom:16px;max-width:420px}
+.ownerbar p{margin:0;color:var(--dim);flex:1;min-width:180px}
+.ownerbar b{color:var(--fg)}
 </style>
 </head>
 <body>
@@ -69,7 +73,7 @@ code{font-family:ui-monospace,Menlo,monospace;font-size:12px;background:#0b0f14;
   <div class="brand">PC5 <span>Keys</span></div>
   <nav>
     <a href="./" data-nav="reseller">Reseller</a>
-    <a href="vips" data-nav="admin">Admin</a>
+    <a href="vips" data-nav="admin" id="navAdmin" class="hide">Admin</a>
   </nav>
 </header>
 
@@ -80,11 +84,16 @@ code{font-family:ui-monospace,Menlo,monospace;font-size:12px;background:#0b0f14;
 
 <script>
 (function () {
+  // Single source of truth for the route. /vips and ?vips both mean owner console.
   var p = location.pathname.replace(/\.html$/i, '').replace(/\/+$/, '');
   var admin = /\/vips$/i.test(p) || /[?&]vips\b/.test(location.search);
   document.documentElement.dataset.route = admin ? 'admin' : 'reseller';
 
+  // Debug strip is opt-in only: add ?debug (or ?vips) to the URL.
+  var DEBUG = /[?&](debug|vips)\b/.test(location.search);
+
   function dbg(m) {
+    if (!DEBUG) return;
     var d = document.getElementById('dbg');
     if (!d) return;
     d.hidden = false;
@@ -97,11 +106,11 @@ code{font-family:ui-monospace,Menlo,monospace;font-size:12px;background:#0b0f14;
   window.addEventListener('unhandledrejection', function (e) {
     dbg('PROMISE: ' + ((e.reason && e.reason.message) || e.reason));
   });
-  setTimeout(function () {
+  if (DEBUG) setTimeout(function () {
     if (!window.__ready) dbg('app.js never executed — check Network tab for 404 on app.js.');
   }, 2000);
 })();
 </script>
-<script src="app.js?v=5"></script>
+<script src="app.js?v=6"></script>
 </body>
 </html>
