@@ -196,15 +196,16 @@ async function mutateResellers(mut, token, msg = 'reseller update') {
 const randomKey = () => CFG.PREFIX + Array.from(crypto.getRandomValues(new Uint8Array(6)),
   b => CFG.ALPHABET[b % CFG.ALPHABET.length]).join('');
 
-async function mintKey(rec, plan, opt) {
+// Keys always start immediately and are always single-device.
+async function mintKey(rec, plan) {
   const token = writeToken(rec);
   if (!token) throw new Error('No GitHub token saved.');
   if ((rec.credits ?? 0) < plan.cost) throw new Error('Not enough credits.');
   const now = Date.now();
-  const p = { key:null, plan:plan.label, durationHours:plan.hours, maxDevices:opt.multi ? 0 : 1,
+  const p = { key:null, plan:plan.label, durationHours:plan.hours, maxDevices:1,
     cost:plan.cost, resellerId:rec.id, reseller:rec.username, createdAt:new Date(now).toISOString(),
-    startedAt: opt.immediate ? new Date(now).toISOString() : null, activatedAt:null,
-    expiresAt: opt.immediate ? new Date(now + plan.hours*3600e3).toISOString() : null };
+    startedAt:new Date(now).toISOString(), activatedAt:null,
+    expiresAt:new Date(now + plan.hours*3600e3).toISOString() };
   const key = await withRetry(async () => {
     const { data, sha } = await loadKeys(token);
     if (!Array.isArray(data.keys)) data.keys = [];
@@ -255,7 +256,7 @@ function viewReseller() {
     <h1 id="hello">—</h1>
     <p class="sub">Credits: <b id="credits">0</b><button id="signOut" class="sm">Sign out</button></p>
     <div class="card">
-      <h2>RESELLER TOKEN</h2>
+      <h2>GitHub token</h2>
       <p class="muted">Fine-grained PAT on <code>pc5-android</code> with <code>Contents: Read and write</code>. Saved on this device only.</p>
       <div class="row"><input id="tokenInput" type="password" placeholder="ghp_…" class="grow">
         <button id="saveToken">Save</button><button id="clearToken" class="sm">Clear</button></div>
@@ -263,11 +264,8 @@ function viewReseller() {
     </div>
     <div class="card">
       <h2>Mint a key</h2>
+      <p class="muted sm-note" style="margin:0 0 12px">Keys start immediately and are single-device.</p>
       <div class="plans" id="plans">${plansHTML()}</div>
-      <div class="toggles">
-        <label><input type="checkbox" id="optImmediate" checked> Start immediately</label>
-        <label><input type="checkbox" id="optMulti"> Multi-device</label>
-      </div>
     </div>
     <div class="card">
       <h2>My keys</h2>
@@ -441,8 +439,7 @@ async function onMint(plan, btn) {
   if (!writeToken(currentRecord)) return toast('Save a GitHub token first.', 'err');
   btn.disabled = true;
   try {
-    const key = await mintKey(currentRecord, plan,
-      { immediate:$('#optImmediate').checked, multi:$('#optMulti').checked });
+    const key = await mintKey(currentRecord, plan);
     toast('Minted ' + key, 'ok');
     const fresh = await reloadRecord(); if (fresh) currentRecord = fresh;
     refreshMine();
