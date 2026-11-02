@@ -18,11 +18,15 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt
 
 /* ---------- storage ---------- */
 const LS = { session:'pc5_session', admin:'pc5_admin', token:'pc5_admin_token' };
-const ADMIN_TTL = 12 * 3600e3; // owner flag expires after 12h instead of living forever
+const tokenKey = id => 'pc5_rtoken_' + id;          // per-reseller token, local only
+const ADMIN_TTL = 12 * 3600e3;                       // owner flag expires after 12h
 
 const getSession = () => { try { return JSON.parse(localStorage.getItem(LS.session) || 'null'); } catch { return null; } };
 const setSession = r => localStorage.setItem(LS.session, JSON.stringify({ id:r.id }));
 const clearSession = () => localStorage.removeItem(LS.session);
+
+const localToken = id => (id ? localStorage.getItem(tokenKey(id)) || '' : '');
+const setLocalToken = (id, t) => t ? localStorage.setItem(tokenKey(id), t) : localStorage.removeItem(tokenKey(id));
 
 const isAdmin = () => {
   try {
@@ -106,16 +110,18 @@ const authHeaders = (t, j) => {
   if (j) h['Content-Type'] = 'application/json';
   return h;
 };
-const writeToken = r => (r && r.token) || localStorage.getItem(LS.token) || CFG.SHARED_TOKEN || '';
+
+// Local token wins, then the token stored on the record, then the shared one.
+const writeToken = r =>
+  localToken(r && r.id) || (r && r.token) || localStorage.getItem(LS.token) || CFG.SHARED_TOKEN || '';
 
 const defaultFor = path => path.endsWith('keys.json') ? { maintenance:{}, keys:[] } : { resellers:[] };
 
-// Unique URL + no-store: GitHub's CDN will otherwise hand back a stale sha forever.
+// Unique URL + no-store: GitHub's CDN otherwise hands back a stale sha forever.
 const contentsUrl = (repo, path) =>
   `https://api.github.com/repos/${repo}/contents/${path}?ref=${CFG.BRANCH}&_=${Date.now()}${Math.random().toString(36).slice(2,8)}`;
 const noStore = { cache:'no-store' };
 
-// Fetch only the blob sha — used to repair a missing/stale sha before writing.
 async function currentSha(repo, path, token) {
   const r = await fetch(contentsUrl(repo, path), { headers: authHeaders(token), ...noStore });
   if (!r.ok) return null;
@@ -134,20 +140,19 @@ async function readJson(repo, path, token) {
     return { data: JSON.parse(b64d(j.content)), sha: j.sha };
   }
 
-  // API failed — fall back to raw so the UI can still render, but KEEP a real sha.
   dbg(`read ${path} API failed (${r ? r.status : 'network'}) — raw fallback`);
   const raw = await fetch(`https://raw.githubusercontent.com/${repo}/${CFG.BRANCH}/${path}?_=${Date.now()}`, noStore);
   if (!raw.ok) throw new Error(`read ${path}: HTTP ${r ? r.status : 'network'}`);
   const data = JSON.parse(await raw.text());
-  const sha = await currentSha(repo, path, token);   // <-- don't lose the sha
+  const sha = await currentSha(repo, path, token);
   if (!sha && r && (r.status === 401 || r.status === 403))
     throw new Error(`read ${path}: HTTP ${r.status} — token cannot read ${repo}`);
   return { data, sha };
 }
 
 async function writeJson(repo, path, data, sha, msg, token) {
-  if (!token) throw new Error('No GitHub token — save the owner token first.');
-  if (!sha) sha = await currentSha(repo, path, token);   // repair missing sha before PUT
+  if (!token) throw new Error('No GitHub token — save a token first.');
+  if (!sha) sha = await currentSha(repo, path, token);
   const body = { message:msg, content:b64e(JSON.stringify(data, null, 2)), branch:CFG.BRANCH };
   if (sha) body.sha = sha;
   const r = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`,
@@ -251,9 +256,9 @@ function viewReseller() {
     <p class="sub">Credits: <b id="credits">0</b><button id="signOut" class="sm">Sign out</button></p>
     <div class="card">
       <h2>GitHub token</h2>
-      <p class="muted">Fine-grained PAT, <code>Contents: Read and write</code>.</p>
+      <p class="muted">Fine-grained PAT on <code>pc5-android</code> with <code>Contents: Read and write</code>. Saved on this device only.</p>
       <div class="row"><input id="tokenInput" type="password" placeholder="ghp_…" class="grow">
-        <button id="saveToken">Save</button></div>
+        <button id="saveToken">Save</button><button id="clearToken" class="sm">Clear</button></div>
       <p id="tokenState" class="muted sm-note"></p>
     </div>
     <div class="card">
@@ -367,25 +372,49 @@ function wireReseller() {
     catch { toast('Copy failed', 'err'); }
   });
 
+  // Local save FIRST (always works), repo persist is best-effort.
   $('#saveToken').addEventListener('click', async () => {
+    if (!currentRecord) return;
     const t = $('#tokenInput').value.trim();
     if (!t) return toast('Paste a token.', 'err');
+
+    setLocalToken(currentRecord.id, t);
+    currentRecord.token = t;
+    $('#tokenInput').value = '';
+    renderTokenState();
+    refreshMine();
+
+    if (!/^(gh[pousr]_|github_pat_)/.test(t)) {
+      toast('Saved on this device, but that does not look like a GitHub token.', 'err');
+      return;
+    }
+
     const btn = $('#saveToken'); btn.disabled = true;
     try {
       const r = await fetch('https://api.github.com/user', { headers: authHeaders(t), ...noStore });
-      if (!r.ok) throw new Error('Token rejected by GitHub.');
-      await mutateResellers(d => {
-        const x = d.resellers.find(y => y.id === currentRecord.id); if (x) x.token = t;
-      }, t, 'save token');
-      currentRecord.token = t; $('#tokenInput').value = '';
-      renderTokenState(); toast('Token saved.', 'ok'); refreshMine();
+      if (!r.ok) throw new Error(`GitHub rejected the token (HTTP ${r.status}).`);
+      toast('Token saved.', 'ok');
+      try {
+        await mutateResellers(d => {
+          const x = d.resellers.find(y => y.id === currentRecord.id); if (x) x.token = t;
+        }, t, 'save token');
+      } catch { toast('Token works here, but could not be stored on the server.', 'err'); }
     } catch (err) { toast(err.message, 'err'); }
     finally { btn.disabled = false; }
+  });
+
+  $('#clearToken').addEventListener('click', () => {
+    if (!currentRecord) return;
+    setLocalToken(currentRecord.id, '');
+    currentRecord.token = '';
+    renderTokenState();
+    toast('Token cleared on this device.', 'ok');
   });
 }
 
 function openPanel(rec) {
   currentRecord = rec;
+  rec.token = localToken(rec.id) || rec.token || '';   // hydrate from device
   show($('#authPanel'), false);
   show($('#ownerNotice'), false);
   show($('#resellerPanel'), true);
@@ -394,8 +423,10 @@ function openPanel(rec) {
 }
 
 function renderTokenState() {
-  $('#tokenState').textContent = writeToken(currentRecord)
-    ? 'Token active — minting enabled.' : 'No token saved. Minting is blocked.';
+  const t = writeToken(currentRecord);
+  $('#tokenState').textContent = t
+    ? `Token active (…${t.slice(-6)}) — minting enabled.`
+    : 'No token saved. Minting is blocked.';
   $('#credits').textContent = currentRecord?.credits ?? 0;
 }
 
@@ -420,6 +451,7 @@ async function reloadRecord() {
   const r = (data.resellers || []).find(x => x.id === s.id);
   if (!r) return null;
   if (r.banned) { clearSession(); toast('Account banned.', 'err'); }
+  r.token = localToken(r.id) || r.token || '';
   $('#credits').textContent = r.credits ?? 0; renderTokenState();
   return r;
 }
@@ -460,13 +492,9 @@ function wireAdmin() {
   $('#saveAdminToken').addEventListener('click', async () => {
     const t = $('#adminToken').value.trim();
     if (!t) return toast('Paste a token.', 'err');
-    const btn = $('#saveAdminToken'); btn.disabled = true;
-    try {
-      const r = await fetch('https://api.github.com/user', { headers: authHeaders(t), ...noStore });
-      if (!r.ok) throw new Error('Token rejected by GitHub.');
-      localStorage.setItem(LS.token, t); toast('Owner token saved.', 'ok'); refreshAdmin();
-    } catch (err) { toast(err.message, 'err'); }
-    finally { btn.disabled = false; }
+    localStorage.setItem(LS.token, t);
+    toast('Owner token saved.', 'ok');
+    refreshAdmin();
   });
   $('#testAdminToken').addEventListener('click', async () => {
     const t = (localStorage.getItem(LS.token) || CFG.SHARED_TOKEN || '').trim();
@@ -679,9 +707,7 @@ setInterval(() => {
   }
 
   wireReseller();
-
-  // The reseller sign-in form is ALWAYS the default surface on "/".
-  show($('#authPanel'), true);
+  show($('#authPanel'), true);   // login form is ALWAYS the default surface on "/"
 
   const s = getSession();
   if (s) {
@@ -692,7 +718,6 @@ setInterval(() => {
       openPanel(r);
     }).catch(err => { dbg('session restore failed: ' + err.message); toast(err.message, 'err'); });
   } else if (owner) {
-    // Owner flag only ADDS a banner above the form — it never replaces it.
     show($('#ownerNotice'), true);
     dbg('owner flag set — banner shown above login form');
   }
