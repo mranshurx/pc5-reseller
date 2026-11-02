@@ -5,7 +5,7 @@
       "username": "mrdesibhai",
       "password": "pbkdf2$120000$8179fbe1dae6dd51ae9e8fd6990f8530$6bd747ed75c455b86bcacfb158bfdb6ed9c29688a6291904e1c762c6b1f763ae",
       "token": null,
-      "credits": 79,
+      "credits": 76,
       "banned": false,
       "createdAt": "2026-11-02T14:13:14.835Z",
       "createdBy": "admin",
@@ -15,6 +15,13 @@
           "plan": "1h",
           "cost": 0.5,
           "createdAt": "2026-11-02T14:14:16.807Z",
+          "revoked": false
+        },
+        {
+          "key": "PC5-4T6MHB",
+          "plan": "6h",
+          "cost": 3,
+          "createdAt": "2026-11-02T14:16:37.005Z",
           "revoked": false
         }
       ],
