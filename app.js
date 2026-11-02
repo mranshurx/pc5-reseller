@@ -40,7 +40,7 @@ const clearAdmin = () => localStorage.removeItem(LS.admin);
 function toast(m, k='') {
   const el = document.createElement('div');
   el.className = 'toast ' + k; el.textContent = m;
-  $('#toasts').append(el); setTimeout(() => el.remove(), 4200);
+  $('#toasts').append(el); setTimeout(() => el.remove(), 6000);
 }
 const fmtDate = i => i ? new Date(i).toLocaleString() : '—';
 function countdown(iso) {
@@ -83,7 +83,10 @@ async function verifyPassword(pw, st) {
 const dummyHash = async pw => { try { await pbkdf2(pw, '00'.repeat(16), 120000); } catch {} };
 
 /* ---------- github ---------- */
-class Conflict extends Error {}
+class Conflict extends Error {
+  constructor(path, status) { super(`${path} — conflict (HTTP ${status})`); this.path = path; this.status = status; }
+}
+
 const b64e = s => {
   const b = te.encode(s); let o = '';
   for (let i = 0; i < b.length; i += 0x8000) o += String.fromCharCode.apply(null, b.subarray(i, i+0x8000));
@@ -102,27 +105,57 @@ const authHeaders = (t, j) => {
 };
 const writeToken = r => (r && r.token) || localStorage.getItem(LS.token) || CFG.SHARED_TOKEN || '';
 
+const defaultFor = path => path.endsWith('keys.json') ? { maintenance:{}, keys:[] } : { resellers:[] };
+
+// Fetch only the blob sha — used to repair a missing sha before writing.
+async function currentSha(repo, path, token) {
+  const r = await fetch(
+    `https://api.github.com/repos/${repo}/contents/${path}?ref=${CFG.BRANCH}&t=${Date.now()}`,
+    { headers: authHeaders(token) });
+  if (!r.ok) return null;
+  const j = await r.json();
+  return j.sha || null;
+}
+
 async function readJson(repo, path, token) {
   const u = `https://api.github.com/repos/${repo}/contents/${path}?ref=${CFG.BRANCH}&t=${Date.now()}`;
-  const r = await fetch(u, { headers: authHeaders(token) });
-  if (r.status === 404) return { data: path.endsWith('keys.json') ? { maintenance:{}, keys:[] } : { resellers:[] }, sha:null };
-  if (!r.ok) {
-    const raw = await fetch(`https://raw.githubusercontent.com/${repo}/${CFG.BRANCH}/${path}?t=${Date.now()}`);
-    if (!raw.ok) throw new Error(`read ${path}: HTTP ${r.status}`);
-    return { data: JSON.parse(await raw.text()), sha:null };
+  let r = null;
+  try { r = await fetch(u, { headers: authHeaders(token) }); } catch { /* offline */ }
+
+  if (r && r.status === 404) return { data: defaultFor(path), sha: null };
+
+  if (r && r.ok) {
+    const j = await r.json();
+    return { data: JSON.parse(b64d(j.content)), sha: j.sha };
   }
-  const j = await r.json();
-  return { data: JSON.parse(b64d(j.content)), sha:j.sha };
+
+  // API failed — fall back to raw so the UI can still render, but KEEP a real sha.
+  dbg(`read ${path} API failed (${r ? r.status : 'network'}) — raw fallback`);
+  const raw = await fetch(`https://raw.githubusercontent.com/${repo}/${CFG.BRANCH}/${path}?t=${Date.now()}`);
+  if (!raw.ok) throw new Error(`read ${path}: HTTP ${r ? r.status : 'network'}`);
+  const data = JSON.parse(await raw.text());
+  const sha = await currentSha(repo, path, token);   // <-- the actual fix
+  if (!sha && r && (r.status === 401 || r.status === 403))
+    throw new Error(`read ${path}: HTTP ${r.status} — token cannot read ${repo}`);
+  return { data, sha };
 }
+
 async function writeJson(repo, path, data, sha, msg, token) {
+  if (!token) throw new Error('No GitHub token — save the owner token first.');
+  if (!sha) sha = await currentSha(repo, path, token);   // repair missing sha before PUT
   const body = { message:msg, content:b64e(JSON.stringify(data, null, 2)), branch:CFG.BRANCH };
   if (sha) body.sha = sha;
   const r = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`,
     { method:'PUT', headers:authHeaders(token, true), body:JSON.stringify(body) });
-  if (r.status === 409 || r.status === 422) throw new Conflict(path);
+  if (r.status === 409 || r.status === 422) throw new Conflict(path, r.status);
+  if (r.status === 401 || r.status === 403)
+    throw new Error(`write ${path}: HTTP ${r.status} — token needs Contents: write on ${repo}`);
+  if (r.status === 404)
+    throw new Error(`write ${path}: HTTP 404 — token has no access to ${repo}, or the data/ folder is missing`);
   if (!r.ok) throw new Error(`write ${path}: HTTP ${r.status} ${(await r.text()).slice(0,150)}`);
   return r.json();
 }
+
 async function withRetry(fn, n = 4) {
   let last;
   for (let i = 0; i < n; i++) {
@@ -247,9 +280,10 @@ function viewAdmin() {
     <div class="stats" id="stats"></div>
     <div class="card">
       <h2>Owner GitHub token</h2>
-      <p class="muted">Must cover <code>pc5-android</code> and <code>pc5-reseller</code>.</p>
+      <p class="muted">Needs <code>Contents: Read and write</code> on <code>pc5-android</code> AND <code>pc5-reseller</code>. One token, both repos.</p>
       <div class="row"><input id="adminToken" type="password" placeholder="ghp_…" class="grow">
-        <button id="saveAdminToken">Save</button></div>
+        <button id="saveAdminToken">Save</button><button id="testAdminToken">Test access</button></div>
+      <p id="tokenDiag" class="muted sm-note"></p>
     </div>
     <div class="card">
       <h2>Create reseller</h2>
@@ -423,6 +457,26 @@ function wireAdmin() {
       localStorage.setItem(LS.token, t); toast('Owner token saved.', 'ok'); refreshAdmin();
     } catch (err) { toast(err.message, 'err'); }
     finally { btn.disabled = false; }
+  });
+  $('#testAdminToken').addEventListener('click', async () => {
+    const t = (localStorage.getItem(LS.token) || CFG.SHARED_TOKEN || '').trim();
+    const out = $('#tokenDiag');
+    if (!t) { out.textContent = 'No token saved.'; return toast('Save the owner token first.', 'err'); }
+    out.textContent = 'Testing…';
+    const lines = [];
+    for (const [repo, path] of [[CFG.DATA_REPO, CFG.DATA_PATH], [CFG.KEYS_REPO, CFG.KEYS_PATH]]) {
+      let s = 'network error';
+      try {
+        const r = await fetch(
+          `https://api.github.com/repos/${repo}/contents/${path}?ref=${CFG.BRANCH}&t=${Date.now()}`,
+          { headers: authHeaders(t) });
+        s = r.ok ? 'read OK' : `HTTP ${r.status}`;
+      } catch {}
+      lines.push(`${repo}/${path}: ${s}`);
+    }
+    out.textContent = lines.join('  ·  ');
+    toast(lines.every(l => l.endsWith('OK')) ? 'Token can read both repos.' : 'Token cannot read both repos — see diagnostics.',
+      lines.every(l => l.endsWith('OK')) ? 'ok' : 'err');
   });
   $('#genPass').addEventListener('click', () => {
     const c = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
