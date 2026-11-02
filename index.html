@@ -2,97 +2,10 @@
 <html lang="en" data-route="reseller">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>PC5 Keys</title>
-<script>
-(function () {
-  var p = location.pathname.replace(/\.html$/i, '').replace(/\/+$/, '');
-  var admin = /\/vips$/i.test(p) || /[?&]vips\b/.test(location.search);
-  document.documentElement.dataset.route = admin ? 'admin' : 'reseller';
-  window.addEventListener('error', function (e) {
-    var b = document.getElementById('bootErr');
-    if (b) { b.hidden = false; b.textContent = 'Script error: ' + e.message; }
-  });
-})();
-</script>
-<style>
-  :root{
-    --bg:#0d1117; --panel:#161b22; --line:#232b36; --fg:#e6edf3;
-    --dim:#8b949e; --accent:#2f81f7; --ok:#3fb950; --bad:#f85149; --warn:#d29922;
-  }
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--fg);
-       font:14px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-  a{color:var(--accent);text-decoration:none}
-  header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:18px;
-         padding:12px 20px;background:rgba(13,17,23,.92);border-bottom:1px solid var(--line);
-         backdrop-filter:blur(8px)}
-  .brand{font-weight:700;letter-spacing:.5px}
-  .brand span{color:var(--accent)}
-  nav{display:flex;gap:6px;margin-left:auto}
-  nav a{padding:6px 12px;border-radius:6px;color:var(--dim);font-weight:600}
-  nav a:hover{background:var(--panel);color:var(--fg)}
-  nav a.active{background:var(--panel);color:var(--fg);box-shadow:inset 0 0 0 1px var(--line)}
-  main{max-width:940px;margin:0 auto;padding:28px 20px 80px}
-  h1{font-size:20px;margin:0 0 4px}
-  h2{font-size:15px;margin:0 0 12px}
-  .sub{color:var(--dim);margin:0 0 22px}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;
-        padding:18px;margin-bottom:16px}
-  .grid{display:grid;gap:16px;grid-template-columns:1fr 1fr}
-  @media(max-width:720px){.grid{grid-template-columns:1fr}}
-  label{display:block;font-size:12px;color:var(--dim);margin:0 0 5px;font-weight:600;
-        text-transform:uppercase;letter-spacing:.4px}
-  input,select{width:100%;padding:9px 11px;margin-bottom:12px;background:#0b0f14;
-        border:1px solid var(--line);border-radius:7px;color:var(--fg);font:inherit}
-  input:focus,select:focus{outline:none;border-color:var(--accent)}
-  button{font:inherit;font-weight:600;padding:9px 15px;border-radius:7px;border:1px solid var(--line);
-         background:#21262d;color:var(--fg);cursor:pointer}
-  button:hover{border-color:#3d444d}
-  button:disabled{opacity:.5;cursor:not-allowed}
-  .primary{background:var(--accent);border-color:var(--accent);color:#fff}
-  .primary:hover{background:#4a92f8}
-  .danger{color:var(--bad)}
-  .row{display:flex;gap:8px;flex-wrap:wrap}
-  .plans{display:grid;grid-template-columns:repeat(auto-fill,minmax(86px,1fr));gap:8px;margin-bottom:14px}
-  .plans button{display:flex;flex-direction:column;gap:2px;align-items:center;padding:10px 6px}
-  .plans small{color:var(--dim);font-size:11px;font-weight:500}
-  .toggles{display:flex;gap:18px;margin-bottom:14px}
-  .toggles label{display:flex;align-items:center;gap:7px;margin:0;text-transform:none;
-                 letter-spacing:0;font-size:13px;font-weight:500;color:var(--dim)}
-  .toggles input{width:auto;margin:0}
-  table{width:100%;border-collapse:collapse;font-size:13px}
-  th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px;
-     color:var(--dim);padding:0 8px 8px;border-bottom:1px solid var(--line);font-weight:700}
-  td{padding:9px 8px;border-bottom:1px solid #1b222c;vertical-align:middle}
-  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;
-       background:#0b0f14;padding:2px 6px;border-radius:4px;border:1px solid var(--line)}
-  .pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px}
-  .pill.live{background:rgba(63,185,80,.15);color:var(--ok)}
-  .pill.dead{background:rgba(248,81,73,.15);color:var(--bad)}
-  .pill.pend{background:rgba(210,153,34,.15);color:var(--warn)}
-  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:16px}
-  .stat{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:13px}
-  .stat b{display:block;font-size:22px}
-  .stat span{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.4px}
-  .res{border:1px solid var(--line);border-radius:9px;margin-bottom:10px;overflow:hidden}
-  .res>summary{display:flex;gap:12px;align-items:center;padding:12px 14px;cursor:pointer;
-       background:var(--panel);list-style:none}
-  .res>summary::-webkit-details-marker{display:none}
-  .res .body{padding:14px;border-top:1px solid var(--line);background:#12171e}
-  .muted{color:var(--dim)}
-  .log{font-size:12px;color:var(--dim);font-family:ui-monospace,monospace}
-  #toasts{position:fixed;right:16px;bottom:16px;display:flex;flex-direction:column;gap:8px;z-index:50}
-  .toast{background:#1c2430;border:1px solid var(--line);border-left:3px solid var(--accent);
-         padding:10px 14px;border-radius:7px;box-shadow:0 8px 24px rgba(0,0,0,.5);max-width:320px}
-  .toast.err{border-left-color:var(--bad)}
-  .toast.ok{border-left-color:var(--ok)}
-  .hide{display:none !important}
-  #bootErr{background:rgba(248,81,73,.12);border:1px solid var(--bad);color:#ffb4ae;
-           padding:10px 14px;border-radius:8px;margin-bottom:16px;font-family:ui-monospace,monospace;font-size:12px}
-  html[data-route="reseller"] #adminView{display:none !important}
-  html[data-route="admin"] #resellerView{display:none !important}
-</style>
+<link rel="stylesheet" href="style.css?v=2">
+<script src="boot.js?v=2"></script>
 </head>
 <body>
 
@@ -107,46 +20,37 @@
 <main>
   <div id="bootErr" hidden></div>
 
-  <!-- ======================= RESELLER ROUTE ======================= -->
   <section id="resellerView">
-
     <div id="authPanel">
       <h1>Reseller sign in</h1>
-      <p class="sub">Accounts are issued by the owner. No self-registration.</p>
-
-      <form id="loginForm" class="card" style="max-width:420px">
+      <p class="sub">Accounts are issued by the owner.</p>
+      <form id="loginForm" class="card narrow">
         <label for="loginUser">Username</label>
-        <input id="loginUser" name="username" autocomplete="username" required>
+        <input id="loginUser" autocomplete="username" required>
         <label for="loginPass">Password</label>
-        <input id="loginPass" name="password" type="password" autocomplete="current-password" required>
+        <input id="loginPass" type="password" autocomplete="current-password" required>
         <button class="primary" type="submit">Sign in</button>
       </form>
-
-      <div id="ownerNotice" class="card hide" style="max-width:420px">
+      <div id="ownerNotice" class="card narrow hide">
         <h2>You're signed in as owner</h2>
-        <p class="muted" style="margin:0 0 14px">The console only lives at <code>/vips</code>.</p>
-        <a class="primary" href="vips"
-           style="display:inline-block;padding:9px 15px;border-radius:7px;color:#fff">Open console</a>
+        <p class="muted">The console only lives at <code>/vips</code>.</p>
+        <a class="primary btn" href="vips">Open console</a>
       </div>
     </div>
 
     <div id="resellerPanel" class="hide">
       <h1 id="hello">—</h1>
-      <p class="sub">
-        Credits: <b id="credits">0</b>
-        <button id="signOut" style="margin-left:12px;padding:3px 10px;font-size:12px">Sign out</button>
-      </p>
+      <p class="sub">Credits: <b id="credits">0</b>
+        <button id="signOut" class="sm">Sign out</button></p>
 
       <div class="card">
         <h2>GitHub token</h2>
-        <p class="muted" style="margin:0 0 12px;font-size:13px">
-          Fine-grained PAT, <code>Contents: Read and write</code>, repo <code>mranshurx/pc5-android</code>.
-        </p>
+        <p class="muted">Fine-grained PAT, <code>Contents: Read and write</code>.</p>
         <div class="row">
-          <input id="tokenInput" type="password" placeholder="ghp_…" style="flex:1;margin:0">
+          <input id="tokenInput" type="password" placeholder="ghp_…" class="grow">
           <button id="saveToken">Save</button>
         </div>
-        <p id="tokenState" class="muted" style="margin:10px 0 0;font-size:12px"></p>
+        <p id="tokenState" class="muted sm-note"></p>
       </div>
 
       <div class="card">
@@ -156,9 +60,6 @@
           <label><input type="checkbox" id="optImmediate" checked> Start immediately</label>
           <label><input type="checkbox" id="optMulti"> Multi-device</label>
         </div>
-        <p class="muted" style="margin:0;font-size:12px">
-          Off = timer starts on the customer's first launch.
-        </p>
       </div>
 
       <div class="card">
@@ -171,32 +72,27 @@
     </div>
   </section>
 
-  <!-- ======================= ADMIN ROUTE ======================= -->
   <section id="adminView">
-
-    <div id="adminGate" style="max-width:420px">
+    <div id="adminGate" class="narrow">
       <h1>Owner console</h1>
       <p class="sub">Password required.</p>
       <form id="gateForm" class="card">
         <label for="gatePass">Password</label>
-        <input id="gatePass" type="password" autocomplete="current-password" required>
+        <input id="gatePass" type="password" required>
         <button class="primary" type="submit">Unlock</button>
       </form>
     </div>
 
     <div id="adminConsole" class="hide">
       <h1>Owner console</h1>
-      <p class="sub"><button id="adminOut" style="padding:3px 10px;font-size:12px">Lock</button></p>
-
+      <p class="sub"><button id="adminOut" class="sm">Lock</button></p>
       <div class="stats" id="stats"></div>
 
       <div class="card">
         <h2>Owner GitHub token</h2>
-        <p class="muted" style="margin:0 0 12px;font-size:13px">
-          Used for all admin writes. Must cover <code>pc5-android</code> and <code>pc5-reseller</code>.
-        </p>
+        <p class="muted">Must cover <code>pc5-android</code> and <code>pc5-reseller</code>.</p>
         <div class="row">
-          <input id="adminToken" type="password" placeholder="ghp_…" style="flex:1;margin:0">
+          <input id="adminToken" type="password" placeholder="ghp_…" class="grow">
           <button id="saveAdminToken">Save</button>
         </div>
       </div>
@@ -204,686 +100,32 @@
       <div class="card">
         <h2>Create reseller</h2>
         <div class="grid">
-          <div>
-            <label for="newUser">Username</label>
-            <input id="newUser" pattern="[a-z0-9_]{3,20}" placeholder="3-20 chars, a-z 0-9 _">
-          </div>
-          <div>
-            <label for="newPass">Password</label>
-            <div class="row">
-              <input id="newPass" style="flex:1;margin:0">
-              <button type="button" id="genPass">Generate</button>
-            </div>
-          </div>
-          <div>
-            <label for="newCredits">Starting credits</label>
-            <input id="newCredits" type="number" min="0" step="0.5" value="0">
-          </div>
-          <div>
-            <label for="newToken">Their token (blank = shared)</label>
-            <input id="newToken" type="password" placeholder="optional">
-          </div>
+          <div><label for="newUser">Username</label>
+            <input id="newUser" placeholder="3-20 chars, a-z 0-9 _"></div>
+          <div><label for="newPass">Password</label>
+            <div class="row"><input id="newPass" class="grow"><button type="button" id="genPass">Generate</button></div></div>
+          <div><label for="newCredits">Starting credits</label>
+            <input id="newCredits" type="number" min="0" step="0.5" value="0"></div>
+          <div><label for="newToken">Their token (blank = shared)</label>
+            <input id="newToken" type="password" placeholder="optional"></div>
         </div>
         <button class="primary" id="createReseller">Create account</button>
       </div>
 
-      <h2 style="margin-top:26px">Resellers</h2>
+      <h2 class="gap">Resellers</h2>
       <div id="resellerList"></div>
     </div>
   </section>
 </main>
 
 <div id="toasts"></div>
-
+<script src="app.js?v=2"></script>
 <script>
-'use strict';
-
-/* ===================== config ===================== */
-const CFG = {
-  KEYS_REPO: 'mranshurx/pc5-android',
-  DATA_REPO: 'mranshurx/pc5-reseller',
-  BRANCH:    'main',
-  KEYS_PATH: 'data/keys.json',
-  DATA_PATH: 'data/resellers.json',
-  ADMIN_PASSWORD: 'pc5admin',
-  SHARED_TOKEN:   '',
-  PREFIX:   'PC5-',
-  ALPHABET: 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
-};
-
-const PLANS = [
-  {label:'1h',  hours:1,   cost:0.5},
-  {label:'3h',  hours:3,   cost:2},
-  {label:'6h',  hours:6,   cost:3},
-  {label:'12h', hours:12,  cost:5},
-  {label:'1d',  hours:24,  cost:7},
-  {label:'3d',  hours:72,  cost:14},
-  {label:'7d',  hours:168, cost:25},
-  {label:'14d', hours:336, cost:30},
-  {label:'30d', hours:720, cost:80}
-];
-
-const IS_ADMIN = document.documentElement.dataset.route === 'admin';
-const HOME = './';
-const $  = (s, r = document) => r.querySelector(s);
-const $$ = (s, r = document) => [...r.querySelectorAll(s)];
-const sleep = ms => new Promise(r => setTimeout(r, ms));
-const esc = s => String(s ?? '').replace(/[&<>"']/g, c =>
-  ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-
-/* ===================== storage ===================== */
-const LS = { session:'pc5_session', admin:'pc5_admin', token:'pc5_admin_token' };
-const getSession = () => {
-  try { return JSON.parse(localStorage.getItem(LS.session) || 'null'); } catch { return null; }
-};
-const setSession = r => localStorage.setItem(LS.session, JSON.stringify({ id: r.id }));
-const clearSession = () => localStorage.removeItem(LS.session);
-const isAdmin = () => localStorage.getItem(LS.admin) === '1';
-
-/* ===================== ui ===================== */
-function toast(msg, kind = '') {
-  const el = document.createElement('div');
-  el.className = 'toast ' + kind;
-  el.textContent = msg;
-  $('#toasts').append(el);
-  setTimeout(() => el.remove(), 4200);
-}
-const fmtDate = iso => iso ? new Date(iso).toLocaleString() : '—';
-function countdown(iso) {
-  if (!iso) return 'not started';
-  const ms = new Date(iso) - Date.now();
-  if (ms <= 0) return 'expired';
-  const s = Math.floor(ms / 1000);
-  const d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600),
-        m = Math.floor(s % 3600 / 60), sec = s % 60;
-  return (d ? d + 'd ' : '') + (d || h ? h + 'h ' : '') + m + 'm ' + sec + 's';
-}
-
-/* ===================== crypto ===================== */
-const te = new TextEncoder();
-const hex2buf = hex => new Uint8Array(hex.match(/.{2}/g).map(b => parseInt(b, 16)));
-const buf2hex = buf => [...buf].map(b => b.toString(16).padStart(2, '0')).join('');
-
-async function sha256(str) {
-  return buf2hex(new Uint8Array(await crypto.subtle.digest('SHA-256', te.encode(str))));
-}
-async function pbkdf2(pw, saltHex, iter) {
-  const key = await crypto.subtle.importKey('raw', te.encode(pw), 'PBKDF2', false, ['deriveBits']);
-  const bits = await crypto.subtle.deriveBits(
-    { name:'PBKDF2', salt: hex2buf(saltHex), iterations: iter, hash:'SHA-256' }, key, 256);
-  return buf2hex(new Uint8Array(bits));
-}
-async function hashPassword(pw) {
-  if (!crypto.subtle) return 'fb$' + await sha256(pw);
-  const salt = buf2hex(crypto.getRandomValues(new Uint8Array(16)));
-  return `pbkdf2$120000$${salt}$${await pbkdf2(pw, salt, 120000)}`;
-}
-async function verifyPassword(pw, stored) {
-  if (!stored) return false;
-  if (stored.startsWith('fb$')) return ('fb$' + await sha256(pw)) === stored;
-  const [, iter, salt, hash] = stored.split('$');
-  if (!hash) return false;
-  return (await pbkdf2(pw, salt, +iter)) === hash;
-}
-async function dummyHash(pw) { try { await pbkdf2(pw, '00'.repeat(16), 120000); } catch {} }
-
-/* ===================== github ===================== */
-class Conflict extends Error {}
-
-const b64e = str => {
-  const bytes = te.encode(str);
-  let bin = '';
-  for (let i = 0; i < bytes.length; i += 0x8000)
-    bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
-  return btoa(bin);
-};
-const b64d = b64 => {
-  const bin = atob(String(b64).replace(/\s/g, ''));
-  const bytes = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-  return new TextDecoder().decode(bytes);
-};
-
-const authHeaders = (token, json) => {
-  const h = { Accept: 'application/vnd.github+json' };
-  if (token) h.Authorization = 'Bearer ' + token;
-  if (json) h['Content-Type'] = 'application/json';
-  return h;
-};
-
-const writeToken = rec => (rec && rec.token) || localStorage.getItem(LS.token) || CFG.SHARED_TOKEN || '';
-
-async function readJson(repo, path, token) {
-  const url = `https://api.github.com/repos/${repo}/contents/${path}?ref=${CFG.BRANCH}&t=${Date.now()}`;
-  const r = await fetch(url, { headers: authHeaders(token) });
-  if (r.status === 404)
-    return { data: path.endsWith('keys.json') ? { maintenance:{}, keys:[] } : { resellers:[] }, sha: null };
-  if (!r.ok) {
-    const raw = await fetch(`https://raw.githubusercontent.com/${repo}/${CFG.BRANCH}/${path}?t=${Date.now()}`);
-    if (!raw.ok) throw new Error(`read ${path}: HTTP ${r.status}`);
-    return { data: JSON.parse(await raw.text()), sha: null };
-  }
-  const j = await r.json();
-  return { data: JSON.parse(b64d(j.content)), sha: j.sha };
-}
-
-async function writeJson(repo, path, data, sha, message, token) {
-  const body = { message, content: b64e(JSON.stringify(data, null, 2)), branch: CFG.BRANCH };
-  if (sha) body.sha = sha;
-  const r = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`,
-    { method:'PUT', headers: authHeaders(token, true), body: JSON.stringify(body) });
-  if (r.status === 409 || r.status === 422) throw new Conflict(`conflict ${path}`);
-  if (!r.ok) throw new Error(`write ${path}: HTTP ${r.status} ${(await r.text()).slice(0, 160)}`);
-  return r.json();
-}
-
-async function withRetry(fn, tries = 4) {
-  let last;
-  for (let i = 0; i < tries; i++) {
-    try { return await fn(); }
-    catch (e) {
-      last = e;
-      if (!(e instanceof Conflict)) throw e;
-      await sleep(150 * 2 ** i + Math.random() * 120);
-    }
-  }
-  throw last;
-}
-
-const loadResellers = token => readJson(CFG.DATA_REPO, CFG.DATA_PATH, token);
-const loadKeys      = token => readJson(CFG.KEYS_REPO, CFG.KEYS_PATH, token);
-
-async function mutateResellers(mutator, token, message = 'reseller update') {
-  return withRetry(async () => {
-    const { data, sha } = await loadResellers(token);
-    if (!Array.isArray(data.resellers)) data.resellers = [];
-    const out = mutator(data);
-    if (out === false) return false;
-    await writeJson(CFG.DATA_REPO, CFG.DATA_PATH, data, sha, message, token);
-    return out === undefined ? true : out;
-  });
-}
-
-/* ===================== minting ===================== */
-const randomKey = () =>
-  CFG.PREFIX + Array.from(crypto.getRandomValues(new Uint8Array(6)),
-    b => CFG.ALPHABET[b % CFG.ALPHABET.length]).join('');
-
-async function mintKey(record, plan, opts) {
-  const token = writeToken(record);
-  if (!token) throw new Error('No GitHub token saved.');
-  if ((record.credits ?? 0) < plan.cost) throw new Error('Not enough credits.');
-
-  const now = Date.now();
-  const payload = {
-    key: null, plan: plan.label, durationHours: plan.hours,
-    maxDevices: opts.multi ? 0 : 1, cost: plan.cost,
-    resellerId: record.id, reseller: record.username,
-    createdAt: new Date(now).toISOString(),
-    startedAt:   opts.immediate ? new Date(now).toISOString() : null,
-    activatedAt: null,
-    expiresAt:   opts.immediate ? new Date(now + plan.hours * 3600e3).toISOString() : null
-  };
-
-  const key = await withRetry(async () => {
-    const { data, sha } = await loadKeys(token);
-    if (!Array.isArray(data.keys)) data.keys = [];
-    if (!data.maintenance) data.maintenance = {};
-    let k = randomKey();
-    while (data.keys.some(x => x.key === k)) k = randomKey();
-    payload.key = k;
-    data.keys.push(payload);
-    await writeJson(CFG.KEYS_REPO, CFG.KEYS_PATH, data, sha, `mint ${k} (${plan.label})`, token);
-    return k;
-  });
-
-  try {
-    await mutateResellers(d => {
-      const r = d.resellers.find(x => x.id === record.id);
-      if (!r) return false;
-      r.credits = +((r.credits ?? 0) - plan.cost).toFixed(2);
-      r.keys = r.keys || [];
-      r.keys.push({ key, plan: plan.label, cost: plan.cost, createdAt: payload.createdAt, revoked: false });
-    }, token);
-  } catch {
-    toast(`Key ${key} written but credit deduction failed — refresh.`, 'err');
-  }
-  return key;
-}
-
-async function ip() {
-  try { return (await (await fetch('https://api.ipify.org?format=json')).json()).ip || ''; }
-  catch { return ''; }
-}
-
-/* ===================== reseller login ===================== */
-$('#loginForm').addEventListener('submit', async e => {
-  e.preventDefault();
-  const btn = e.target.querySelector('button');
-  btn.disabled = true;
-  try {
-    const username = $('#loginUser').value.trim().toLowerCase();
-    const password = $('#loginPass').value;
-    const { data } = await loadResellers(writeToken(null));
-    const r = (data.resellers || []).find(x => x.username === username);
-
-    const ok = r ? await verifyPassword(password, r.password) : (await dummyHash(password), false);
-    if (!r || !ok) throw new Error('Invalid credentials.');
-    if (r.banned) throw new Error('Account banned.');
-
-    setSession(r);
-    e.target.reset();
-
-    mutateResellers(d => {
-      const t = d.resellers.find(x => x.id === r.id);
-      if (t) {
-        t.logins = t.logins || [];
-        t.logins.unshift({ at: new Date().toISOString(), ip:'', ua: navigator.userAgent });
-        t.logins.length = Math.min(t.logins.length, 20);
-      }
-    }, writeToken(r), 'login').catch(() => {});
-
-    ip().then(addr => {
-      if (!addr) return;
-      mutateResellers(d => {
-        const t = d.resellers.find(x => x.id === r.id);
-        if (t && t.logins && t.logins[0]) t.logins[0].ip = addr;
-      }, writeToken(r), 'login ip').catch(() => {});
-    });
-
-    await openPanel(r);
-  } catch (err) {
-    toast(err.message, 'err');
-  } finally {
-    btn.disabled = false;
-  }
-});
-
-/* ===================== reseller panel ===================== */
-let currentRecord = null;
-
-async function openPanel(record) {
-  currentRecord = record;
-  $('#authPanel').classList.add('hide');
-  $('#resellerPanel').classList.remove('hide');
-  $('#hello').textContent = 'Signed in as ' + record.username;
-  renderPlans();
-  renderTokenState();
-  await refreshMine();
-  startTicker();
-}
-
-function renderPlans() {
-  const box = $('#plans');
-  box.innerHTML = '';
-  for (const p of PLANS) {
-    const b = document.createElement('button');
-    b.innerHTML = `<b>${p.label}</b><small>${p.cost} cr</small>`;
-    b.addEventListener('click', () => onMint(p, b));
-    box.append(b);
-  }
-}
-
-async function onMint(plan, btn) {
-  if (!currentRecord) return;
-  if ((currentRecord.credits ?? 0) < plan.cost) return toast('Not enough credits.', 'err');
-  if (!writeToken(currentRecord)) return toast('Save a GitHub token first.', 'err');
-  btn.disabled = true;
-  try {
-    const key = await mintKey(currentRecord, plan, {
-      immediate: $('#optImmediate').checked,
-      multi: $('#optMulti').checked
-    });
-    toast('Minted ' + key, 'ok');
-    const fresh = await reloadRecord();
-    if (fresh) currentRecord = fresh;
-    await refreshMine();
-  } catch (err) {
-    toast(err.message, 'err');
-  } finally {
-    btn.disabled = false;
-  }
-}
-
-async function reloadRecord() {
-  const s = getSession();
-  if (!s) return null;
-  const { data } = await loadResellers(writeToken(null));
-  const r = (data.resellers || []).find(x => x.id === s.id);
-  if (!r) return null;
-  if (r.banned) { clearSession(); toast('Account banned.', 'err'); }
-  $('#credits').textContent = r.credits ?? 0;
-  renderTokenState();
-  return r;
-}
-
-function renderTokenState() {
-  const has = !!writeToken(currentRecord);
-  $('#tokenState').textContent = has
-    ? 'Token active — minting enabled.'
-    : 'No token saved. Minting is blocked until you add one.';
-  $('#credits').textContent = currentRecord?.credits ?? 0;
-}
-
-async function refreshMine() {
-  if (!currentRecord) return;
-  try {
-    const { data } = await loadKeys(writeToken(currentRecord));
-    const mine = (data.keys || []).filter(k => k.resellerId === currentRecord.id).reverse();
-    const tbody = $('#myKeys');
-    if (!mine.length) {
-      tbody.innerHTML = '<tr><td colspan="6" class="muted">No keys yet.</td></tr>';
-      return;
-    }
-    tbody.innerHTML = mine.map(k => {
-      const exp = k.expiresAt;
-      const live = exp && new Date(exp) > new Date();
-      return `<tr>
-        <td><code>${esc(k.key)}</code></td>
-        <td>${esc(k.plan)}</td>
-        <td class="muted">${esc(fmtDate(k.createdAt))}</td>
-        <td><span class="pill ${live ? 'live' : (exp ? 'dead' : 'pend')}"
-             data-exp="${esc(exp || '')}">${esc(countdown(exp))}</span></td>
-        <td>${esc(k.cost)} cr</td>
-        <td><button data-copy="${esc(k.key)}" style="padding:3px 9px;font-size:12px">Copy</button></td>
-      </tr>`;
-    }).join('');
-  } catch { /* silent */ }
-}
-
-$('#myKeys').addEventListener('click', async e => {
-  const b = e.target.closest('[data-copy]');
-  if (!b) return;
-  try { await navigator.clipboard.writeText(b.dataset.copy); toast('Copied', 'ok'); }
-  catch { toast('Copy failed', 'err'); }
-});
-
-$('#saveToken').addEventListener('click', async () => {
-  const t = $('#tokenInput').value.trim();
-  if (!t) return toast('Paste a token.', 'err');
-  const btn = $('#saveToken');
-  btn.disabled = true;
-  try {
-    const r = await fetch('https://api.github.com/user', { headers: authHeaders(t) });
-    if (!r.ok) throw new Error('Token rejected by GitHub.');
-    await mutateResellers(d => {
-      const rec = d.resellers.find(x => x.id === currentRecord.id);
-      if (rec) rec.token = t;
-    }, t, 'save token');
-    currentRecord.token = t;
-    $('#tokenInput').value = '';
-    renderTokenState();
-    toast('Token saved.', 'ok');
-    await refreshMine();
-  } catch (err) {
-    toast(err.message, 'err');
-  } finally {
-    btn.disabled = false;
-  }
-});
-
-$('#signOut').addEventListener('click', () => { clearSession(); location.href = HOME; });
-
-/* ===================== ticker ===================== */
-let ticker = null;
-function startTicker() {
-  clearInterval(ticker);
-  ticker = setInterval(() => {
-    $$('[data-exp]').forEach(el => {
-      const iso = el.dataset.exp;
-      if (!iso) return;
-      el.textContent = countdown(iso);
-      el.className = 'pill ' + (new Date(iso) > new Date() ? 'live' : 'dead');
-    });
-  }, 1000);
-}
-setInterval(() => {
-  if (IS_ADMIN && !$('#adminConsole').classList.contains('hide')) refreshAdmin();
-  else if (!IS_ADMIN && currentRecord) reloadRecord().then(r => r && refreshMine()).catch(() => {});
-}, 20000);
-
-/* ===================== admin gate ===================== */
-$('#gateForm').addEventListener('submit', e => {
-  e.preventDefault();
-  if ($('#gatePass').value !== CFG.ADMIN_PASSWORD) return toast('Wrong password.', 'err');
-  localStorage.setItem(LS.admin, '1');
-  openConsole();
-});
-
-$('#adminOut').addEventListener('click', () => {
-  localStorage.removeItem(LS.admin);
-  $('#adminConsole').classList.add('hide');
-  $('#adminGate').classList.remove('hide');
-  $('#gatePass').value = '';
-});
-
-function openConsole() {
-  $('#adminGate').classList.add('hide');
-  $('#adminConsole').classList.remove('hide');
-  const t = localStorage.getItem(LS.token);
-  if (t) $('#adminToken').value = t;
-  refreshAdmin();
-  startTicker();
-}
-
-$('#saveAdminToken').addEventListener('click', async () => {
-  const t = $('#adminToken').value.trim();
-  if (!t) return toast('Paste a token.', 'err');
-  const btn = $('#saveAdminToken');
-  btn.disabled = true;
-  try {
-    const r = await fetch('https://api.github.com/user', { headers: authHeaders(t) });
-    if (!r.ok) throw new Error('Token rejected by GitHub.');
-    localStorage.setItem(LS.token, t);
-    toast('Owner token saved.', 'ok');
-    refreshAdmin();
-  } catch (err) {
-    toast(err.message, 'err');
-  } finally {
-    btn.disabled = false;
-  }
-});
-
-/* ===================== create reseller ===================== */
-$('#genPass').addEventListener('click', () => {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
-  $('#newPass').value = Array.from(crypto.getRandomValues(new Uint8Array(14)),
-    b => chars[b % chars.length]).join('');
-});
-
-$('#createReseller').addEventListener('click', async e => {
-  e.preventDefault();
-  const token = localStorage.getItem(LS.token) || CFG.SHARED_TOKEN;
-  if (!token) return toast('Save the owner token first.', 'err');
-
-  const username = $('#newUser').value.trim().toLowerCase();
-  const password = $('#newPass').value;
-  const credits = Math.max(0, Number($('#newCredits').value || 0));
-  const theirToken = $('#newToken').value.trim();
-
-  if (!/^[a-z0-9_]{3,20}$/.test(username))
-    return toast('Username: 3-20 chars, a-z 0-9 _ only.', 'err');
-  if (password.length < 8) return toast('Password needs 8+ characters.', 'err');
-
-  const btn = e.target;
-  btn.disabled = true;
-  try {
-    const hash = await hashPassword(password);
-    const ok = await mutateResellers(d => {
-      if (d.resellers.some(r => r.username === username)) return false;
-      d.resellers.push({
-        id: crypto.randomUUID(), username, password: hash,
-        token: theirToken || null, credits, banned: false,
-        createdAt: new Date().toISOString(), createdBy: 'admin',
-        keys: [], logins: []
-      });
-    }, token, `create reseller ${username}`);
-
-    if (!ok) throw new Error('Username already exists.');
-    toast(`Created ${username} — hand them the password.`, 'ok');
-    $('#newUser').value = ''; $('#newPass').value = '';
-    $('#newToken').value = ''; $('#newCredits').value = '0';
-    refreshAdmin();
-  } catch (err) {
-    toast(err.message, 'err');
-  } finally {
-    btn.disabled = false;
-  }
-});
-
-/* ===================== admin console ===================== */
-async function refreshAdmin() {
-  const token = localStorage.getItem(LS.token) || CFG.SHARED_TOKEN;
-  if (!token) {
-    $('#stats').innerHTML = '<div class="stat"><b>!</b><span>save owner token</span></div>';
-    return;
-  }
-  try {
-    const [{ data: rd }, { data: kd }] = await Promise.all([loadResellers(token), loadKeys(token)]);
-    const resellers = rd.resellers || [];
-    const keys = kd.keys || [];
-    const dayAgo = Date.now() - 86400e3;
-
-    $('#stats').innerHTML = [
-      ['resellers', resellers.length],
-      ['active 24h', resellers.filter(r => (r.logins || []).some(l => new Date(l.at) > dayAgo)).length],
-      ['keys issued', keys.length],
-      ['still valid', keys.filter(k => k.expiresAt && new Date(k.expiresAt) > new Date()).length],
-      ['credits held', resellers.reduce((a, r) => a + (r.credits ?? 0), 0)]
-    ].map(([label, val]) => `<div class="stat"><b>${val}</b><span>${label}</span></div>`).join('');
-
-    const box = $('#resellerList');
-    if (!resellers.length) { box.innerHTML = '<p class="muted">No resellers yet.</p>'; return; }
-
-    box.innerHTML = resellers.map(r => {
-      const rk = keys.filter(k => k.resellerId === r.id);
-      const logins = (r.logins || []).slice(0, 5)
-        .map(l => `<div class="log">${esc(fmtDate(l.at))} · ${esc(l.ip || '?')} · ${esc((l.ua || '').slice(0, 48))}</div>`)
-        .join('') || '<div class="log">no logins</div>';
-      return `<details class="res" data-id="${esc(r.id)}">
-        <summary>
-          <b>${esc(r.username)}</b>
-          <span class="muted">${esc(r.credits ?? 0)} cr · ${rk.length} keys</span>
-          ${r.banned ? '<span class="pill dead">banned</span>' : '<span class="pill live">active</span>'}
-        </summary>
-        <div class="body">
-          <div class="row" style="margin-bottom:12px">
-            <input type="number" step="0.5" value="0" data-add style="width:90px;margin:0">
-            <button data-act="add" style="padding:5px 10px;font-size:12px">Add credits</button>
-            <input type="number" step="0.5" value="${esc(r.credits ?? 0)}" data-set style="width:90px;margin:0">
-            <button data-act="set" style="padding:5px 10px;font-size:12px">Set credits</button>
-            <button data-act="pw" style="padding:5px 10px;font-size:12px">Reset password</button>
-            <button data-act="ban" style="padding:5px 10px;font-size:12px">${r.banned ? 'Unban' : 'Ban'}</button>
-            <button data-act="del" class="danger" style="padding:5px 10px;font-size:12px">Delete</button>
-          </div>
-          <h2 style="font-size:12px;margin:0 0 8px">Keys</h2>
-          ${rk.length ? `<table><thead><tr><th>Key</th><th>Plan</th><th>Expiry</th><th></th></tr></thead><tbody>
-            ${rk.map(k => `<tr><td><code>${esc(k.key)}</code></td><td>${esc(k.plan)}</td>
-              <td>${esc(countdown(k.expiresAt))}</td>
-              <td>${k.revoked ? '<span class="pill dead">revoked</span>'
-                : `<button data-act="revoke" data-key="${esc(k.key)}" style="padding:3px 9px;font-size:12px">Revoke</button>`}</td>
-            </tr>`).join('')}
-          </tbody></table>` : '<p class="muted" style="margin:0">none</p>'}
-          <h2 style="font-size:12px;margin:14px 0 6px">Recent logins</h2>
-          ${logins}
-        </div>
-      </details>`;
-    }).join('');
-  } catch (err) {
-    toast(err.message, 'err');
-  }
-}
-
-$('#resellerList').addEventListener('click', async e => {
-  const btn = e.target.closest('button[data-act]');
-  if (!btn) return;
-  const row = btn.closest('.res');
-  const id = row.dataset.id;
-  const token = localStorage.getItem(LS.token) || CFG.SHARED_TOKEN;
-  const act = btn.dataset.act;
-  btn.disabled = true;
-  try {
-    if (act === 'add') {
-      const n = Number(row.querySelector('[data-add]').value || 0);
-      if (!n) throw new Error('Enter an amount.');
-      await mutateResellers(d => {
-        const r = d.resellers.find(x => x.id === id);
-        if (r) r.credits = +((r.credits ?? 0) + n).toFixed(2);
-      }, token, 'add credits');
-    } else if (act === 'set') {
-      const n = Math.max(0, Number(row.querySelector('[data-set]').value || 0));
-      await mutateResellers(d => {
-        const r = d.resellers.find(x => x.id === id);
-        if (r) r.credits = +n.toFixed(2);
-      }, token, 'set credits');
-    } else if (act === 'pw') {
-      const pw = prompt('New password (8+ chars):');
-      if (!pw) return;
-      if (pw.length < 8) throw new Error('Too short.');
-      const hash = await hashPassword(pw);
-      await mutateResellers(d => {
-        const r = d.resellers.find(x => x.id === id);
-        if (r) r.password = hash;
-      }, token, 'reset password');
-      toast('Password reset.', 'ok');
-    } else if (act === 'ban') {
-      await mutateResellers(d => {
-        const r = d.resellers.find(x => x.id === id);
-        if (r) r.banned = !r.banned;
-      }, token, 'toggle ban');
-    } else if (act === 'del') {
-      if (!confirm('Delete this reseller? Keys stay in keys.json.')) return;
-      await mutateResellers(d => { d.resellers = d.resellers.filter(x => x.id !== id); },
-        token, 'delete reseller');
-      toast('Deleted.', 'ok');
-    } else if (act === 'revoke') {
-      const key = btn.dataset.key;
-      if (!confirm('Revoke ' + key + '?')) return;
-      await withRetry(async () => {
-        const { data, sha } = await loadKeys(token);
-        data.keys = (data.keys || []).filter(k => k.key !== key);
-        await writeJson(CFG.KEYS_REPO, CFG.KEYS_PATH, data, sha, `revoke ${key}`, token);
-      });
-      await mutateResellers(d => {
-        const r = d.resellers.find(x => x.id === id);
-        const k = (r?.keys || []).find(x => x.key === key);
-        if (k) k.revoked = true;
-      }, token, 'mark revoked');
-      toast('Revoked.', 'ok');
-    }
-    await refreshAdmin();
-  } catch (err) {
-    toast(err.message, 'err');
-  } finally {
-    btn.disabled = false;
-  }
-});
-
-/* ===================== boot ===================== */
-(function boot() {
-  const active = $(`[data-nav="${IS_ADMIN ? 'admin' : 'reseller'}"]`);
-  if (active) active.classList.add('active');
-
-  if (IS_ADMIN) {
-    if (isAdmin()) openConsole();
-    return;
-  }
-
-  const s = getSession();
-  if (s) {
-    loadResellers(writeToken(null))
-      .then(({ data }) => {
-        const r = (data.resellers || []).find(x => x.id === s.id);
-        if (!r) { clearSession(); return; }
-        if (r.banned) { clearSession(); toast('Account banned.', 'err'); return; }
-        openPanel(r);
-      })
-      .catch(err => toast(err.message, 'err'));
-  } else if (isAdmin()) {
-    $('#authPanel').classList.add('hide');
-    $('#ownerNotice').classList.remove('hide');
-  }
-})();
+setTimeout(function () {
+  if (document.body.dataset.ready) return;
+  var e = document.getElementById('bootErr');
+  if (e) { e.hidden = false; e.textContent = 'app.js did not run — check the file exists and the console for errors.'; }
+}, 2500);
 </script>
 </body>
 </html>
