@@ -109,6 +109,18 @@
         }
       ],
       "logins": []
+    },
+    {
+      "id": "180d2b61-e358-4002-b584-0b595e5e478c",
+      "username": "within",
+      "password": "pbkdf2$120000$da61eded5816b46630c905f17ee4f01e$3b7d5ed8a5e50d3271d44cb76f6f6f9cdfd575ccd915d04367aec771e378fa8c",
+      "token": null,
+      "credits": 44,
+      "banned": false,
+      "createdAt": "2026-11-02T16:13:57.600Z",
+      "createdBy": "admin",
+      "keys": [],
+      "logins": []
     }
   ]
 }
