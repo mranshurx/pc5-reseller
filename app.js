@@ -271,6 +271,7 @@ function viewReseller() {
     </div>
     <div class="card">
       <h2>My keys</h2>
+      <p class="muted sm-note" style="margin:0 0 10px">Revoking deletes the key from the backend immediately. No credits are refunded.</p>
       <table><thead><tr><th>Key</th><th>Plan</th><th>Created</th><th>Expiry</th><th>Cost</th><th></th></tr></thead>
       <tbody id="myKeys"><tr><td colspan="6" class="muted">No keys yet.</td></tr></tbody></table>
     </div>
@@ -366,10 +367,14 @@ function wireReseller() {
   });
 
   $('#myKeys').addEventListener('click', async e => {
-    const b = e.target.closest('[data-copy]');
-    if (!b) return;
-    try { await navigator.clipboard.writeText(b.dataset.copy); toast('Copied', 'ok'); }
-    catch { toast('Copy failed', 'err'); }
+    const cp = e.target.closest('[data-copy]');
+    if (cp) {
+      try { await navigator.clipboard.writeText(cp.dataset.copy); toast('Copied', 'ok'); }
+      catch { toast('Copy failed', 'err'); }
+      return;
+    }
+    const rv = e.target.closest('[data-revoke]');
+    if (rv) revokeMine(rv.dataset.revoke, rv);
   });
 
   // Local save FIRST (always works), repo persist is best-effort.
@@ -469,9 +474,39 @@ async function refreshMine() {
       <td class="muted">${esc(fmtDate(k.createdAt))}</td>
       <td><span class="pill ${live?'live':(exp?'dead':'pend')}" data-exp="${esc(exp||'')}">${esc(countdown(exp))}</span></td>
       <td>${esc(k.cost)} cr</td>
-      <td><button data-copy="${esc(k.key)}" class="sm">Copy</button></td></tr>`;
+      <td><button data-copy="${esc(k.key)}" class="sm">Copy</button>
+      ${k.revoked ? '<span class="pill dead">revoked</span>'
+        : `<button data-revoke="${esc(k.key)}" class="sm danger">Revoke</button>`}</td></tr>`;
     }).join('');
   } catch {}
+}
+
+async function revokeMine(key, btn) {
+  if (!currentRecord) return;
+  const token = writeToken(currentRecord);
+  if (!token) return toast('Save a GitHub token first.', 'err');
+  if (!confirm('Revoke ' + key + '? The customer loses access immediately.')) return;
+  btn.disabled = true;
+  try {
+    await withRetry(async () => {
+      const { data, sha } = await loadKeys(token);
+      if (!Array.isArray(data.keys)) data.keys = [];
+      const before = data.keys.length;
+      data.keys = data.keys.filter(k => k.key !== key);
+      if (data.keys.length === before) throw new Error('Key not found in keys.json.');
+      await writeJson(CFG.KEYS_REPO, CFG.KEYS_PATH, data, sha, `revoke ${key}`, token);
+    });
+    try {
+      await mutateResellers(d => {
+        const r = d.resellers.find(x => x.id === currentRecord.id);
+        const k = (r?.keys || []).find(x => x.key === key);
+        if (k) k.revoked = true;
+      }, token, `revoke ${key}`);
+    } catch { toast('Key revoked, but the record was not updated.', 'err'); }
+    toast('Revoked ' + key, 'ok');
+    refreshMine();
+  } catch (err) { toast(err.message, 'err'); }
+  finally { btn.disabled = false; }
 }
 
 /* ---------- admin wiring ---------- */
