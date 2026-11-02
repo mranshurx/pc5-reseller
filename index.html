@@ -5,8 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>PC5 Keys</title>
 <script>
-  document.documentElement.dataset.route =
-    /\/vips\/?$/i.test(location.pathname.replace(/\.html$/i, '')) ? 'admin' : 'reseller';
+(function () {
+  var p = location.pathname.replace(/\.html$/i, '').replace(/\/+$/, '');
+  var admin = /\/vips$/i.test(p) || /[?&]vips\b/.test(location.search);
+  document.documentElement.dataset.route = admin ? 'admin' : 'reseller';
+  window.addEventListener('error', function (e) {
+    var b = document.getElementById('bootErr');
+    if (b) { b.hidden = false; b.textContent = 'Script error: ' + e.message; }
+  });
+})();
 </script>
 <style>
   :root{
@@ -50,7 +57,7 @@
   .plans{display:grid;grid-template-columns:repeat(auto-fill,minmax(86px,1fr));gap:8px;margin-bottom:14px}
   .plans button{display:flex;flex-direction:column;gap:2px;align-items:center;padding:10px 6px}
   .plans small{color:var(--dim);font-size:11px;font-weight:500}
-  .toggles{display:flex;gap:18px;margin-bottom:14px;font-size:13px;color:var(--dim)}
+  .toggles{display:flex;gap:18px;margin-bottom:14px}
   .toggles label{display:flex;align-items:center;gap:7px;margin:0;text-transform:none;
                  letter-spacing:0;font-size:13px;font-weight:500;color:var(--dim)}
   .toggles input{width:auto;margin:0}
@@ -81,6 +88,8 @@
   .toast.err{border-left-color:var(--bad)}
   .toast.ok{border-left-color:var(--ok)}
   .hide{display:none !important}
+  #bootErr{background:rgba(248,81,73,.12);border:1px solid var(--bad);color:#ffb4ae;
+           padding:10px 14px;border-radius:8px;margin-bottom:16px;font-family:ui-monospace,monospace;font-size:12px}
   html[data-route="reseller"] #adminView{display:none !important}
   html[data-route="admin"] #resellerView{display:none !important}
 </style>
@@ -90,12 +99,13 @@
 <header>
   <div class="brand">PC5 <span>Keys</span></div>
   <nav>
-    <a href="/" data-nav="reseller">Reseller</a>
-    <a href="/vips" data-nav="admin">Admin</a>
+    <a href="./" data-nav="reseller">Reseller</a>
+    <a href="vips" data-nav="admin">Admin</a>
   </nav>
 </header>
 
 <main>
+  <div id="bootErr" hidden></div>
 
   <!-- ======================= RESELLER ROUTE ======================= -->
   <section id="resellerView">
@@ -115,7 +125,7 @@
       <div id="ownerNotice" class="card hide" style="max-width:420px">
         <h2>You're signed in as owner</h2>
         <p class="muted" style="margin:0 0 14px">The console only lives at <code>/vips</code>.</p>
-        <a class="primary" href="/vips"
+        <a class="primary" href="vips"
            style="display:inline-block;padding:9px 15px;border-radius:7px;color:#fff">Open console</a>
       </div>
     </div>
@@ -176,9 +186,7 @@
 
     <div id="adminConsole" class="hide">
       <h1>Owner console</h1>
-      <p class="sub">
-        <button id="adminOut" style="padding:3px 10px;font-size:12px">Lock</button>
-      </p>
+      <p class="sub"><button id="adminOut" style="padding:3px 10px;font-size:12px">Lock</button></p>
 
       <div class="stats" id="stats"></div>
 
@@ -223,7 +231,6 @@
       <div id="resellerList"></div>
     </div>
   </section>
-
 </main>
 
 <div id="toasts"></div>
@@ -257,27 +264,23 @@ const PLANS = [
 ];
 
 const IS_ADMIN = document.documentElement.dataset.route === 'admin';
+const HOME = './';
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c =>
   ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-/* ===================== storage / session ===================== */
-const LS = {
-  session: 'pc5_session',
-  admin:   'pc5_admin',
-  token:   'pc5_admin_token'
-};
+/* ===================== storage ===================== */
+const LS = { session:'pc5_session', admin:'pc5_admin', token:'pc5_admin_token' };
 const getSession = () => {
-  try { return JSON.parse(localStorage.getItem(LS.session) || 'null'); }
-  catch { return null; }
+  try { return JSON.parse(localStorage.getItem(LS.session) || 'null'); } catch { return null; }
 };
 const setSession = r => localStorage.setItem(LS.session, JSON.stringify({ id: r.id }));
 const clearSession = () => localStorage.removeItem(LS.session);
 const isAdmin = () => localStorage.getItem(LS.admin) === '1';
 
-/* ===================== ui helpers ===================== */
+/* ===================== ui ===================== */
 function toast(msg, kind = '') {
   const el = document.createElement('div');
   el.className = 'toast ' + kind;
@@ -307,7 +310,7 @@ async function sha256(str) {
 async function pbkdf2(pw, saltHex, iter) {
   const key = await crypto.subtle.importKey('raw', te.encode(pw), 'PBKDF2', false, ['deriveBits']);
   const bits = await crypto.subtle.deriveBits(
-    { name: 'PBKDF2', salt: hex2buf(saltHex), iterations: iter, hash: 'SHA-256' }, key, 256);
+    { name:'PBKDF2', salt: hex2buf(saltHex), iterations: iter, hash:'SHA-256' }, key, 256);
   return buf2hex(new Uint8Array(bits));
 }
 async function hashPassword(pw) {
@@ -322,9 +325,9 @@ async function verifyPassword(pw, stored) {
   if (!hash) return false;
   return (await pbkdf2(pw, salt, +iter)) === hash;
 }
-async function dummyHash(pw) { await pbkdf2(pw, '00'.repeat(16), 120000); }
+async function dummyHash(pw) { try { await pbkdf2(pw, '00'.repeat(16), 120000); } catch {} }
 
-/* ===================== github api ===================== */
+/* ===================== github ===================== */
 class Conflict extends Error {}
 
 const b64e = str => {
@@ -348,18 +351,15 @@ const authHeaders = (token, json) => {
   return h;
 };
 
-function writeToken(record) {
-  return (record && record.token) || localStorage.getItem(LS.token) || CFG.SHARED_TOKEN || '';
-}
+const writeToken = rec => (rec && rec.token) || localStorage.getItem(LS.token) || CFG.SHARED_TOKEN || '';
 
 async function readJson(repo, path, token) {
   const url = `https://api.github.com/repos/${repo}/contents/${path}?ref=${CFG.BRANCH}&t=${Date.now()}`;
   const r = await fetch(url, { headers: authHeaders(token) });
   if (r.status === 404)
-    return { data: path.endsWith('keys.json') ? { maintenance: {}, keys: [] } : { resellers: [] }, sha: null };
+    return { data: path.endsWith('keys.json') ? { maintenance:{}, keys:[] } : { resellers:[] }, sha: null };
   if (!r.ok) {
-    const raw = await fetch(
-      `https://raw.githubusercontent.com/${repo}/${CFG.BRANCH}/${path}?t=${Date.now()}`);
+    const raw = await fetch(`https://raw.githubusercontent.com/${repo}/${CFG.BRANCH}/${path}?t=${Date.now()}`);
     if (!raw.ok) throw new Error(`read ${path}: HTTP ${r.status}`);
     return { data: JSON.parse(await raw.text()), sha: null };
   }
@@ -371,7 +371,7 @@ async function writeJson(repo, path, data, sha, message, token) {
   const body = { message, content: b64e(JSON.stringify(data, null, 2)), branch: CFG.BRANCH };
   if (sha) body.sha = sha;
   const r = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`,
-    { method: 'PUT', headers: authHeaders(token, true), body: JSON.stringify(body) });
+    { method:'PUT', headers: authHeaders(token, true), body: JSON.stringify(body) });
   if (r.status === 409 || r.status === 422) throw new Conflict(`conflict ${path}`);
   if (!r.ok) throw new Error(`write ${path}: HTTP ${r.status} ${(await r.text()).slice(0, 160)}`);
   return r.json();
@@ -393,7 +393,6 @@ async function withRetry(fn, tries = 4) {
 const loadResellers = token => readJson(CFG.DATA_REPO, CFG.DATA_PATH, token);
 const loadKeys      = token => readJson(CFG.KEYS_REPO, CFG.KEYS_PATH, token);
 
-/* atomic mutate: re-reads + re-applies inside the retry loop */
 async function mutateResellers(mutator, token, message = 'reseller update') {
   return withRetry(async () => {
     const { data, sha } = await loadResellers(token);
@@ -405,7 +404,7 @@ async function mutateResellers(mutator, token, message = 'reseller update') {
   });
 }
 
-/* ===================== key minting ===================== */
+/* ===================== minting ===================== */
 const randomKey = () =>
   CFG.PREFIX + Array.from(crypto.getRandomValues(new Uint8Array(6)),
     b => CFG.ALPHABET[b % CFG.ALPHABET.length]).join('');
@@ -416,14 +415,10 @@ async function mintKey(record, plan, opts) {
   if ((record.credits ?? 0) < plan.cost) throw new Error('Not enough credits.');
 
   const now = Date.now();
-  const record_ = {
-    key: null,
-    plan: plan.label,
-    durationHours: plan.hours,
-    maxDevices: opts.multi ? 0 : 1,
-    cost: plan.cost,
-    resellerId: record.id,
-    reseller: record.username,
+  const payload = {
+    key: null, plan: plan.label, durationHours: plan.hours,
+    maxDevices: opts.multi ? 0 : 1, cost: plan.cost,
+    resellerId: record.id, reseller: record.username,
     createdAt: new Date(now).toISOString(),
     startedAt:   opts.immediate ? new Date(now).toISOString() : null,
     activatedAt: null,
@@ -436,8 +431,8 @@ async function mintKey(record, plan, opts) {
     if (!data.maintenance) data.maintenance = {};
     let k = randomKey();
     while (data.keys.some(x => x.key === k)) k = randomKey();
-    record_.key = k;
-    data.keys.push(record_);
+    payload.key = k;
+    data.keys.push(payload);
     await writeJson(CFG.KEYS_REPO, CFG.KEYS_PATH, data, sha, `mint ${k} (${plan.label})`, token);
     return k;
   });
@@ -448,23 +443,20 @@ async function mintKey(record, plan, opts) {
       if (!r) return false;
       r.credits = +((r.credits ?? 0) - plan.cost).toFixed(2);
       r.keys = r.keys || [];
-      r.keys.push({ key, plan: plan.label, cost: plan.cost, createdAt: record_.createdAt, revoked: false });
+      r.keys.push({ key, plan: plan.label, cost: plan.cost, createdAt: payload.createdAt, revoked: false });
     }, token);
-  } catch (e) {
+  } catch {
     toast(`Key ${key} written but credit deduction failed — refresh.`, 'err');
   }
   return key;
 }
 
-/* ===================== ip ===================== */
 async function ip() {
-  try {
-    const r = await fetch('https://api.ipify.org?format=json');
-    return (await r.json()).ip || '';
-  } catch { return ''; }
+  try { return (await (await fetch('https://api.ipify.org?format=json')).json()).ip || ''; }
+  catch { return ''; }
 }
 
-/* ===================== reseller: login ===================== */
+/* ===================== reseller login ===================== */
 $('#loginForm').addEventListener('submit', async e => {
   e.preventDefault();
   const btn = e.target.querySelector('button');
@@ -486,7 +478,7 @@ $('#loginForm').addEventListener('submit', async e => {
       const t = d.resellers.find(x => x.id === r.id);
       if (t) {
         t.logins = t.logins || [];
-        t.logins.unshift({ at: new Date().toISOString(), ip: '', ua: navigator.userAgent });
+        t.logins.unshift({ at: new Date().toISOString(), ip:'', ua: navigator.userAgent });
         t.logins.length = Math.min(t.logins.length, 20);
       }
     }, writeToken(r), 'login').catch(() => {});
@@ -507,7 +499,7 @@ $('#loginForm').addEventListener('submit', async e => {
   }
 });
 
-/* ===================== reseller: panel ===================== */
+/* ===================== reseller panel ===================== */
 let currentRecord = null;
 
 async function openPanel(record) {
@@ -536,7 +528,6 @@ async function onMint(plan, btn) {
   if (!currentRecord) return;
   if ((currentRecord.credits ?? 0) < plan.cost) return toast('Not enough credits.', 'err');
   if (!writeToken(currentRecord)) return toast('Save a GitHub token first.', 'err');
-
   btn.disabled = true;
   try {
     const key = await mintKey(currentRecord, plan, {
@@ -560,7 +551,7 @@ async function reloadRecord() {
   const { data } = await loadResellers(writeToken(null));
   const r = (data.resellers || []).find(x => x.id === s.id);
   if (!r) return null;
-  if (r.banned) { clearSession(); location.reload(); }
+  if (r.banned) { clearSession(); toast('Account banned.', 'err'); }
   $('#credits').textContent = r.credits ?? 0;
   renderTokenState();
   return r;
@@ -631,12 +622,9 @@ $('#saveToken').addEventListener('click', async () => {
   }
 });
 
-$('#signOut').addEventListener('click', () => {
-  clearSession();
-  location.href = '/';
-});
+$('#signOut').addEventListener('click', () => { clearSession(); location.href = HOME; });
 
-/* ===================== ticker / refresh ===================== */
+/* ===================== ticker ===================== */
 let ticker = null;
 function startTicker() {
   clearInterval(ticker);
@@ -645,8 +633,7 @@ function startTicker() {
       const iso = el.dataset.exp;
       if (!iso) return;
       el.textContent = countdown(iso);
-      const live = new Date(iso) > new Date();
-      el.className = 'pill ' + (live ? 'live' : 'dead');
+      el.className = 'pill ' + (new Date(iso) > new Date() ? 'live' : 'dead');
     });
   }, 1000);
 }
@@ -655,7 +642,7 @@ setInterval(() => {
   else if (!IS_ADMIN && currentRecord) reloadRecord().then(r => r && refreshMine()).catch(() => {});
 }, 20000);
 
-/* ===================== admin: gate ===================== */
+/* ===================== admin gate ===================== */
 $('#gateForm').addEventListener('submit', e => {
   e.preventDefault();
   if ($('#gatePass').value !== CFG.ADMIN_PASSWORD) return toast('Wrong password.', 'err');
@@ -697,7 +684,7 @@ $('#saveAdminToken').addEventListener('click', async () => {
   }
 });
 
-/* ===================== admin: create reseller ===================== */
+/* ===================== create reseller ===================== */
 $('#genPass').addEventListener('click', () => {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
   $('#newPass').value = Array.from(crypto.getRandomValues(new Uint8Array(14)),
@@ -725,25 +712,17 @@ $('#createReseller').addEventListener('click', async e => {
     const ok = await mutateResellers(d => {
       if (d.resellers.some(r => r.username === username)) return false;
       d.resellers.push({
-        id: crypto.randomUUID(),
-        username,
-        password: hash,
-        token: theirToken || null,
-        credits,
-        banned: false,
-        createdAt: new Date().toISOString(),
-        createdBy: 'admin',
-        keys: [],
-        logins: []
+        id: crypto.randomUUID(), username, password: hash,
+        token: theirToken || null, credits, banned: false,
+        createdAt: new Date().toISOString(), createdBy: 'admin',
+        keys: [], logins: []
       });
     }, token, `create reseller ${username}`);
 
     if (!ok) throw new Error('Username already exists.');
     toast(`Created ${username} — hand them the password.`, 'ok');
-    $('#newUser').value = '';
-    $('#newPass').value = '';
-    $('#newToken').value = '';
-    $('#newCredits').value = '0';
+    $('#newUser').value = ''; $('#newPass').value = '';
+    $('#newToken').value = ''; $('#newCredits').value = '0';
     refreshAdmin();
   } catch (err) {
     toast(err.message, 'err');
@@ -752,7 +731,7 @@ $('#createReseller').addEventListener('click', async e => {
   }
 });
 
-/* ===================== admin: console ===================== */
+/* ===================== admin console ===================== */
 async function refreshAdmin() {
   const token = localStorage.getItem(LS.token) || CFG.SHARED_TOKEN;
   if (!token) {
@@ -760,9 +739,7 @@ async function refreshAdmin() {
     return;
   }
   try {
-    const [{ data: rd }, { data: kd }] = await Promise.all([
-      loadResellers(token), loadKeys(token)
-    ]);
+    const [{ data: rd }, { data: kd }] = await Promise.all([loadResellers(token), loadKeys(token)]);
     const resellers = rd.resellers || [];
     const keys = kd.keys || [];
     const dayAgo = Date.now() - 86400e3;
@@ -776,10 +753,8 @@ async function refreshAdmin() {
     ].map(([label, val]) => `<div class="stat"><b>${val}</b><span>${label}</span></div>`).join('');
 
     const box = $('#resellerList');
-    if (!resellers.length) {
-      box.innerHTML = '<p class="muted">No resellers yet.</p>';
-      return;
-    }
+    if (!resellers.length) { box.innerHTML = '<p class="muted">No resellers yet.</p>'; return; }
+
     box.innerHTML = resellers.map(r => {
       const rk = keys.filter(k => k.resellerId === r.id);
       const logins = (r.logins || []).slice(0, 5)
@@ -858,9 +833,8 @@ $('#resellerList').addEventListener('click', async e => {
       }, token, 'toggle ban');
     } else if (act === 'del') {
       if (!confirm('Delete this reseller? Keys stay in keys.json.')) return;
-      await mutateResellers(d => {
-        d.resellers = d.resellers.filter(x => x.id !== id);
-      }, token, 'delete reseller');
+      await mutateResellers(d => { d.resellers = d.resellers.filter(x => x.id !== id); },
+        token, 'delete reseller');
       toast('Deleted.', 'ok');
     } else if (act === 'revoke') {
       const key = btn.dataset.key;
