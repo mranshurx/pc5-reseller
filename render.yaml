@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: pc5-reseller
+    runtime: static
+    staticPublishPath: .
+    routes:
+      - type: rewrite
+        source: /vips
+        destination: /index.html
+      - type: rewrite
+        source: /vips/*
+        destination: /index.html
