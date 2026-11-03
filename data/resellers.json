@@ -234,6 +234,18 @@
           "ua": "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36"
         }
       ]
+    },
+    {
+      "id": "505e236f-1909-480c-87c3-867c12525caa",
+      "username": "aimdevil",
+      "password": "pbkdf2$120000$4f85d94d30750b81b33c3d0e1e0d43cf$66829085c71ecb9628d7da3485be476982193d2a6434ccdf26b2a34bd966804d",
+      "token": null,
+      "credits": 20,
+      "banned": false,
+      "createdAt": "2026-11-03T10:16:04.362Z",
+      "createdBy": "admin",
+      "keys": [],
+      "logins": []
     }
   ]
 }
