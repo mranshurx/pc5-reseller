@@ -222,7 +222,7 @@
       "username": "prime",
       "password": "pbkdf2$120000$5a5ad9762404819ef0134c0f96fc17f3$d0c5a38687c067dde4b471f66a75b78488b025ca76876f79232ab0445766542b",
       "token": null,
-      "credits": 1.5,
+      "credits": 1,
       "banned": false,
       "createdAt": "2026-11-03T10:11:19.657Z",
       "createdBy": "admin",
@@ -233,6 +233,13 @@
           "cost": 0.5,
           "createdAt": "2026-11-03T10:20:13.159Z",
           "revoked": true
+        },
+        {
+          "key": "PC5-GMT9NE",
+          "plan": "1h",
+          "cost": 0.5,
+          "createdAt": "2026-11-03T11:51:21.186Z",
+          "revoked": false
         }
       ],
       "logins": [
