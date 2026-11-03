@@ -147,7 +147,7 @@
           "plan": "1h",
           "cost": 0.5,
           "createdAt": "2026-11-02T16:13:37.981Z",
-          "revoked": false
+          "revoked": true
         },
         {
           "key": "PC5-EN39Y8",
