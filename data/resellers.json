@@ -106,7 +106,7 @@
           "plan": "30d",
           "cost": 80,
           "createdAt": "2026-11-03T10:01:03.015Z",
-          "revoked": false
+          "revoked": true
         }
       ],
       "logins": [
