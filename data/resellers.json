@@ -212,7 +212,7 @@
       "username": "within",
       "password": "pbkdf2$120000$da61eded5816b46630c905f17ee4f01e$3b7d5ed8a5e50d3271d44cb76f6f6f9cdfd575ccd915d04367aec771e378fa8c",
       "token": null,
-      "credits": 104.5,
+      "credits": 24.5,
       "banned": false,
       "createdAt": "2026-11-02T16:13:57.600Z",
       "createdBy": "admin",
@@ -223,6 +223,13 @@
           "cost": 0.5,
           "createdAt": "2026-11-02T16:16:18.623Z",
           "revoked": true
+        },
+        {
+          "key": "PC5-KPGD3M",
+          "plan": "30d",
+          "cost": 80,
+          "createdAt": "2026-11-03T19:43:04.385Z",
+          "revoked": false
         }
       ],
       "logins": [
