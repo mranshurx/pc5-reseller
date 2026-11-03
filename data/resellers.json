@@ -284,6 +284,18 @@
         }
       ],
       "logins": []
+    },
+    {
+      "id": "e9a617a3-ee19-457f-a649-1e0e9a65f0c3",
+      "username": "irfan737",
+      "password": "pbkdf2$120000$98127f0ba8871f9a67ff8300e8583c52$a26875e817f6cf20eb339471db78bf0b5d0ac817b4293ecfb034279a8a9251bc",
+      "token": null,
+      "credits": 5,
+      "banned": false,
+      "createdAt": "2026-11-03T12:54:33.886Z",
+      "createdBy": "admin",
+      "keys": [],
+      "logins": []
     }
   ]
 }
