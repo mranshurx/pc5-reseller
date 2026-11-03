@@ -216,6 +216,18 @@
           "ua": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Mobile Safari/537.36"
         }
       ]
+    },
+    {
+      "id": "f59f0676-3496-4d61-a363-0fc68ec7f59c",
+      "username": "prime",
+      "password": "pbkdf2$120000$5a5ad9762404819ef0134c0f96fc17f3$d0c5a38687c067dde4b471f66a75b78488b025ca76876f79232ab0445766542b",
+      "token": null,
+      "credits": 5,
+      "banned": false,
+      "createdAt": "2026-11-03T10:11:19.657Z",
+      "createdBy": "admin",
+      "keys": [],
+      "logins": []
     }
   ]
 }
