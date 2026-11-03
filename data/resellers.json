@@ -144,7 +144,7 @@
       "username": "mikey56",
       "password": "pbkdf2$120000$a13e1e85510fd2d3795d2f0f3513e75b$710de9a77431f83696e15d0ff9c8724dc26d6eb276bcf54403eccf3879f2b754",
       "token": null,
-      "credits": 18,
+      "credits": 17.5,
       "banned": false,
       "createdAt": "2026-11-02T15:46:01.703Z",
       "createdBy": "admin",
@@ -176,6 +176,13 @@
           "cost": 0.5,
           "createdAt": "2026-11-03T08:33:50.975Z",
           "revoked": true
+        },
+        {
+          "key": "PC5-M87HAZ",
+          "plan": "1h",
+          "cost": 0.5,
+          "createdAt": "2026-11-03T14:26:14.733Z",
+          "revoked": false
         }
       ],
       "logins": [
