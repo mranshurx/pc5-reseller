@@ -313,7 +313,7 @@
           "plan": "1h",
           "cost": 0.5,
           "createdAt": "2026-11-03T10:18:02.909Z",
-          "revoked": false
+          "revoked": true
         }
       ],
       "logins": []
