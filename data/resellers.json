@@ -367,7 +367,7 @@
           "plan": "1h",
           "cost": 0.5,
           "createdAt": "2026-11-04T08:00:09.942Z",
-          "revoked": false
+          "revoked": true
         },
         {
           "key": "PC5-UQU22B",
