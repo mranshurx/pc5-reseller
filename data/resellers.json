@@ -343,7 +343,7 @@
       "username": "aimdevil",
       "password": "pbkdf2$120000$4f85d94d30750b81b33c3d0e1e0d43cf$66829085c71ecb9628d7da3485be476982193d2a6434ccdf26b2a34bd966804d",
       "token": null,
-      "credits": 109,
+      "credits": 108.5,
       "banned": false,
       "createdAt": "2026-11-03T10:16:04.362Z",
       "createdBy": "admin",
@@ -375,6 +375,13 @@
           "cost": 0.5,
           "createdAt": "2026-11-04T22:25:08.246Z",
           "revoked": true
+        },
+        {
+          "key": "PC5-XTQ696",
+          "plan": "1h",
+          "cost": 0.5,
+          "createdAt": "2026-11-06T07:34:19.953Z",
+          "revoked": false
         }
       ],
       "logins": []
