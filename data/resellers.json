@@ -288,7 +288,7 @@
           "plan": "6h",
           "cost": 3,
           "createdAt": "2026-11-12T18:05:17.701Z",
-          "revoked": false
+          "revoked": true
         },
         {
           "key": "PC5-TLCUNS",
