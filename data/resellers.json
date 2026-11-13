@@ -5,7 +5,7 @@
       "username": "namanraj",
       "password": "pbkdf2$120000$0040cec6d20dbf4fde8b4b6c6fbd9c48$b388843ed9e12b70f344007b36d46856adfe1d9d865d05d84b7c3322dfa5dc0c",
       "token": null,
-      "credits": 4480,
+      "credits": 4473,
       "banned": false,
       "createdAt": "2026-11-02T15:01:07.188Z",
       "createdBy": "admin",
@@ -457,6 +457,13 @@
           "cost": 0.5,
           "createdAt": "2026-11-13T05:53:13.665Z",
           "revoked": true
+        },
+        {
+          "key": "PC5-62ZMQT",
+          "plan": "1d",
+          "cost": 7,
+          "createdAt": "2026-11-13T05:58:19.794Z",
+          "revoked": false
         }
       ],
       "logins": [
