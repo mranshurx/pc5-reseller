@@ -190,7 +190,7 @@
           "plan": "1d",
           "cost": 7,
           "createdAt": "2026-11-10T15:28:01.868Z",
-          "revoked": false
+          "revoked": true
         },
         {
           "key": "PC5-4SL3HW",
