@@ -260,7 +260,7 @@
           "plan": "1h",
           "cost": 0.5,
           "createdAt": "2026-11-12T17:58:08.190Z",
-          "revoked": false
+          "revoked": true
         },
         {
           "key": "PC5-YEWHSB",
