@@ -470,7 +470,7 @@
           "plan": "1d",
           "cost": 7,
           "createdAt": "2026-11-13T05:59:15.233Z",
-          "revoked": false
+          "revoked": true
         },
         {
           "key": "PC5-GCAX2E",
