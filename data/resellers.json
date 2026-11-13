@@ -274,7 +274,7 @@
           "plan": "1d",
           "cost": 7,
           "createdAt": "2026-11-12T17:59:58.884Z",
-          "revoked": false
+          "revoked": true
         },
         {
           "key": "PC5-Y553LV",
