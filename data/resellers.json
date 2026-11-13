@@ -253,7 +253,7 @@
           "plan": "30d",
           "cost": 80,
           "createdAt": "2026-11-12T01:16:28.559Z",
-          "revoked": false
+          "revoked": true
         },
         {
           "key": "PC5-UNGKEJ",
