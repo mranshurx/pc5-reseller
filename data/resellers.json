@@ -225,7 +225,7 @@
           "plan": "1d",
           "cost": 7,
           "createdAt": "2026-11-10T17:51:57.907Z",
-          "revoked": false
+          "revoked": true
         },
         {
           "key": "PC5-4SAM2V",
