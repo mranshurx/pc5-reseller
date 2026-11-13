@@ -449,7 +449,7 @@
           "plan": "1h",
           "cost": 0.5,
           "createdAt": "2026-11-13T05:11:52.037Z",
-          "revoked": false
+          "revoked": true
         },
         {
           "key": "PC5-NZ77MK",
