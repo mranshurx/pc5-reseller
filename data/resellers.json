@@ -547,7 +547,7 @@
           "plan": "3h",
           "cost": 2,
           "createdAt": "2026-11-13T08:59:27.646Z",
-          "revoked": false
+          "revoked": true
         },
         {
           "key": "PC5-4DSRMW",
