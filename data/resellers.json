@@ -372,7 +372,7 @@
           "plan": "1d",
           "cost": 7,
           "createdAt": "2026-11-13T03:47:11.762Z",
-          "revoked": false
+          "revoked": true
         },
         {
           "key": "PC5-CD6AQY",
