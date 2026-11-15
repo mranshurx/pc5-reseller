@@ -302,7 +302,7 @@
           "plan": "3h",
           "cost": 2,
           "createdAt": "2026-11-12T18:35:23.656Z",
-          "revoked": false
+          "revoked": true
         },
         {
           "key": "PC5-M3VATE",
