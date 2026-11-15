@@ -316,7 +316,7 @@
           "plan": "1h",
           "cost": 0.5,
           "createdAt": "2026-11-12T18:47:01.246Z",
-          "revoked": false
+          "revoked": true
         },
         {
           "key": "PC5-V5FM36",
