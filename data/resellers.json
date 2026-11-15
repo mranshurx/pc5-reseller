@@ -498,7 +498,7 @@
           "plan": "1d",
           "cost": 7,
           "createdAt": "2026-11-13T06:17:50.371Z",
-          "revoked": false
+          "revoked": true
         },
         {
           "key": "PC5-GEQ8HD",
