@@ -379,7 +379,7 @@
           "plan": "3h",
           "cost": 2,
           "createdAt": "2026-11-13T04:02:17.998Z",
-          "revoked": false
+          "revoked": true
         },
         {
           "key": "PC5-PUSPES",
