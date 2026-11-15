@@ -505,7 +505,7 @@
           "plan": "1h",
           "cost": 0.5,
           "createdAt": "2026-11-13T06:23:25.712Z",
-          "revoked": false
+          "revoked": true
         },
         {
           "key": "PC5-MN4DX7",
