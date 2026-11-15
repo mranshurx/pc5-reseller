@@ -519,7 +519,7 @@
           "plan": "12h",
           "cost": 5,
           "createdAt": "2026-11-13T07:58:49.767Z",
-          "revoked": false
+          "revoked": true
         },
         {
           "key": "PC5-SQF6YS",
