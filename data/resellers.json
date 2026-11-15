@@ -484,7 +484,7 @@
           "plan": "3h",
           "cost": 2,
           "createdAt": "2026-11-13T06:15:59.207Z",
-          "revoked": false
+          "revoked": true
         },
         {
           "key": "PC5-E5UFBV",
