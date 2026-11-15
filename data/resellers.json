@@ -561,7 +561,7 @@
           "plan": "1d",
           "cost": 7,
           "createdAt": "2026-11-13T09:42:51.373Z",
-          "revoked": false
+          "revoked": true
         },
         {
           "key": "PC5-N5GQVA",
